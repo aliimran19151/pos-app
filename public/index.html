@@ -2085,10 +2085,111 @@
   }
 
   function exportToExcel() {
-    let ws = XLSX.utils.json_to_sheet(userTransactions);
-    let wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-    XLSX.writeFile(wb, "POS_Data.xlsx");
+    try {
+      if (typeof XLSX === 'undefined') {
+        alert("Excel library load ho rahi hai, 2 second baad dubara click karein!");
+        return;
+      }
+
+      const hasParties = Array.isArray(userParties) && userParties.length > 0;
+      const hasTxs = Array.isArray(userTransactions) && userTransactions.length > 0;
+
+      if (!hasParties && !hasTxs) {
+        alert("Export karne ke liye koi data maujood nahi hai!");
+        return;
+      }
+
+      const typeLabels = {
+        SALE_CREDIT: "Sell on Credit (Udhar)",
+        SALE_CASH: "Sell Cash (Naqad)",
+        PAYMENT_REC: "Payment Received (Wasooli)",
+        SALE_RETURN: "Sale Return (Wapsi)",
+        PURCHASE_CREDIT: "Purchase on Credit (Udhar)",
+        PURCHASE_CASH: "Purchase Cash (Naqad)",
+        PAYMENT_PAID: "Payment Paid (Diya)",
+        PURCHASE_RETURN: "Purchase Return (Wapsi)"
+      };
+
+      // Sheet 1: Clean Transactions (without base64 image crash)
+      const cleanTxs = (userTransactions || []).map((t, i) => ({
+        "Sr #": i + 1,
+        "Date": t.date || "-",
+        "Bill #": t.billNo || "-",
+        "Role": t.role || "-",
+        "Party Name": t.name || "-",
+        "Transaction Type": typeLabels[t.type] || t.type || "-",
+        "Amount (Rs)": Number(t.amount) || 0,
+        "Payment Method": t.method || "Credit",
+        "Bill Pic": t.img ? "Yes" : "No",
+        "Notes": t.notes || "-"
+      }));
+
+      // Sheet 2: Party Balances Summary
+      const summaryMap = {};
+      (userParties || []).forEach(p => {
+        const key = (p.role || "Customer") + "__" + p.name.toLowerCase();
+        summaryMap[key] = {
+          "Party Name": p.name,
+          "Role": p.role || "Customer",
+          "Phone": p.phone || "-",
+          "Total Udhar (Rs)": 0,
+          "Total Jama / Wapsi (Rs)": 0,
+          "Net Balance (Rs)": 0
+        };
+      });
+
+      (userTransactions || []).forEach(t => {
+        const role = t.role || "Customer";
+        const key = role + "__" + (t.name || "Unknown").toLowerCase();
+        if (!summaryMap[key]) {
+          summaryMap[key] = {
+            "Party Name": t.name || "Unknown",
+            "Role": role,
+            "Phone": "-",
+            "Total Udhar (Rs)": 0,
+            "Total Jama / Wapsi (Rs)": 0,
+            "Net Balance (Rs)": 0
+          };
+        }
+        const amt = Number(t.amount) || 0;
+        if (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT") {
+          summaryMap[key]["Total Udhar (Rs)"] += amt;
+        } else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN" || t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") {
+          summaryMap[key]["Total Jama / Wapsi (Rs)"] += amt;
+        }
+        summaryMap[key]["Net Balance (Rs)"] = summaryMap[key]["Total Udhar (Rs)"] - summaryMap[key]["Total Jama / Wapsi (Rs)"];
+      });
+
+      const summaryRows = Object.values(summaryMap);
+
+      const wb = XLSX.utils.book_new();
+      const wsSum = XLSX.utils.json_to_sheet(summaryRows.length ? summaryRows : [{ Message: "No parties yet" }]);
+      const wsTx = XLSX.utils.json_to_sheet(cleanTxs.length ? cleanTxs : [{ Message: "No transactions yet" }]);
+
+      wsSum['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 18 }];
+      wsTx['!cols'] = [{ wch: 7 }, { wch: 13 }, { wch: 14 }, { wch: 11 }, { wch: 22 }, { wch: 26 }, { wch: 15 }, { wch: 16 }, { wch: 10 }, { wch: 28 }];
+
+      XLSX.utils.book_append_sheet(wb, wsSum, "Party Balances");
+      XLSX.utils.book_append_sheet(wb, wsTx, "All Transactions");
+
+      const bizName = (currentUser && currentUser.bizName) ? currentUser.bizName.replace(/[^a-zA-Z0-9_-]/g, '_') : "POS";
+      const fileName = `${bizName}_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
+    } catch (err) {
+      alert("Excel export error: " + err.message);
+    }
   }
 </script>
 </body>
