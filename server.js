@@ -333,4 +333,16 @@ app.post('/api/save-data', async (req, res) => {
     }
 });
 
+// Keep-Alive Ping Route & Auto-Ping Timer (Every 10 Minutes)
+app.get('/ping', (req, res) => {
+    res.status(200).send('OK');
+});
+
+const RENDER_URL = 'https://pos-app-ypoc.onrender.com/ping';
+setInterval(() => {
+    https.get(RENDER_URL, (res) => {
+        res.resume();
+    }).on('error', () => {});
+}, 10 * 60 * 1000);
+
 app.listen(PORT, () => console.log(`Secure Firebase REST POS Backend Running on port ${PORT}`));
