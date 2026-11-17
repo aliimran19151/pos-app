@@ -65,7 +65,7 @@
     <form id="registerForm" class="d-none" onsubmit="handleRegister(event)">
       <div class="mb-2">
         <label class="form-label small fw-bold">Business Name</label>
-        <input type="text" id="regBizName" class="form-control" placeholder="Enter Your Business / Shop Name" required>
+        <input type="text" id="regBizName" class="form-control" placeholder="e.g. M TEX" required>
       </div>
       <div class="mb-2">
         <label class="form-label small fw-bold">Phone Number (Unique Login ID)</label>
@@ -374,9 +374,8 @@
                   <option value="Supplier">Suppliers</option>
                 </select>
               </div>
-              <div class="col-6 col-md-3 text-end d-flex gap-1">
-                <button class="btn btn-outline-danger w-50 fw-bold px-1" onclick="generatePartyLedgerPDF()"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-                <button class="btn btn-success w-50 fw-bold px-1" onclick="sharePartyLedgerPDF()"><i class="fa-solid fa-share-nodes"></i> Share</button>
+              <div class="col-6 col-md-3 text-end">
+                <button class="btn btn-outline-danger w-100 fw-bold" onclick="generatePartyLedgerPDF()"><i class="fa-solid fa-file-pdf me-1"></i> Download PDF</button>
               </div>
               <div class="col-5 col-md-4 mt-2">
                 <label class="form-label small fw-bold text-secondary mb-0">From Date</label>
@@ -1192,8 +1191,7 @@
           <td>${info.phone}</td>
           <td>
             <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="viewPartyLedger('${safeName}', '${info.role}')">View</button>
-            <button class="btn btn-sm btn-danger fw-bold" onclick="exportSinglePartyPDF('${safeName}', false)"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-            <button class="btn btn-sm btn-success fw-bold" onclick="exportSinglePartyPDF('${safeName}', true)"><i class="fa-solid fa-share-nodes"></i></button>
+            <button class="btn btn-sm btn-danger fw-bold" onclick="exportSinglePartyPDF('${safeName}')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
           </td>
         </tr>
       `;
@@ -1776,10 +1774,7 @@
           <td><span class="badge bg-secondary">${t.type}</span></td>
           <td class="fw-bold">Rs. ${t.amount.toLocaleString()} (${t.method || 'Credit'})</td>
           <td>${picBtn}</td>
-          <td class="text-nowrap">
-            <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditTxModal('${t.id}')"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn btn-sm btn-danger" onclick="deleteTx(${t.id})"><i class="fa-solid fa-trash"></i></button>
-          </td>
+          <td><button class="btn btn-sm btn-danger" onclick="deleteTx(${t.id})"><i class="fa-solid fa-trash"></i></button></td>
         </tr>
       `;
     });
@@ -1796,50 +1791,7 @@
     }
   }
 
-  async   function openEditTxModal(txId) {
-    const tx = userTransactions.find(t => String(t.id) === String(txId));
-    if (!tx) return;
-    document.getElementById("editTxId").value = tx.id;
-    document.getElementById("editTxDate").value = tx.date || "";
-    document.getElementById("editTxBill").value = tx.billNo || "";
-    document.getElementById("editTxType").value = tx.type || "SALE_CREDIT";
-    document.getElementById("editTxAmount").value = tx.amount || 0;
-    document.getElementById("editTxMethod").value = tx.method || "Credit";
-    document.getElementById("editTxNotes").value = tx.notes || "";
-    const modal = new bootstrap.Modal(document.getElementById("editTxModal"));
-    modal.show();
-  }
-
-  function saveEditedTx() {
-    const txId = document.getElementById("editTxId").value;
-    const idx = userTransactions.findIndex(t => String(t.id) === String(txId));
-    if (idx === -1) return;
-
-    const newAmt = parseFloat(document.getElementById("editTxAmount").value);
-    if (isNaN(newAmt) || newAmt <= 0) {
-      alert("Sahi amount enter karein!");
-      return;
-    }
-
-    userTransactions[idx].date = document.getElementById("editTxDate").value || userTransactions[idx].date;
-    userTransactions[idx].billNo = document.getElementById("editTxBill").value.trim() || "-";
-    userTransactions[idx].type = document.getElementById("editTxType").value;
-    userTransactions[idx].amount = newAmt;
-    userTransactions[idx].method = document.getElementById("editTxMethod").value;
-    userTransactions[idx].notes = document.getElementById("editTxNotes").value.trim();
-
-    if (typeof saveUserData === "function") saveUserData();
-    else if (typeof syncData === "function") syncData();
-
-    const modalEl = document.getElementById("editTxModal");
-    const modalInstance = bootstrap.Modal.getInstance(modalEl);
-    if (modalInstance) modalInstance.hide();
-
-    searchPartyLedger();
-    if (typeof updateDashboard === "function") updateDashboard();
-  }
-
-function deleteTx(id) {
+  async function deleteTx(id) {
     userTransactions = userTransactions.filter(t => t.id !== id);
     await saveToServer();
     refreshDashboard();
@@ -1876,18 +1828,10 @@ function deleteTx(id) {
     if (partyName === "Select a Party") {
       return alert("Pehle kisi specific party ka ledger search ya select karein!");
     }
-    exportSinglePartyPDF(partyName, false);
+    exportSinglePartyPDF(partyName);
   }
 
-  function sharePartyLedgerPDF() {
-    let partyName = document.getElementById("selectedPartyName").innerText;
-    if (partyName === "Select a Party") {
-      return alert("Pehle kisi specific party ka ledger search ya select karein!");
-    }
-    exportSinglePartyPDF(partyName, true);
-  }
-
-  async function exportSinglePartyPDF(partyName, isShare = false) {
+  function exportSinglePartyPDF(partyName) {
     if (typeof window.jspdf === 'undefined') {
       alert("jsPDF library load ho rahi hai, 2 second baad try karein!");
       return;
@@ -2071,26 +2015,7 @@ function deleteTx(id) {
       doc.text("Authorized Stamp & Signature", 196, finalY + 5, { align: 'right' });
     }
 
-    const fileName = partyName.replace(/\s+/g, '_') + "_Ledger.pdf";
-    if (isShare) {
-      try {
-        const pdfBlob = doc.output('blob');
-        const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
-        if (typeof navigator.share === 'function' && (!navigator.canShare || navigator.canShare({ files: [pdfFile] }))) {
-          await navigator.share({
-            title: partyName + ' - Account Statement',
-            text: 'Assalam-o-Alaikum, ' + partyName + ' ka account ledger statement attached hai.',
-            files: [pdfFile]
-          });
-          return;
-        }
-      } catch (err) {
-        if (err && err.name === 'AbortError') return;
-      }
-      doc.save(fileName);
-      return;
-    }
-    doc.save(fileName);
+    doc.save(partyName.replace(/\s+/g, '_') + "_Ledger.pdf");
   }
 
   function downloadAllDuesPDF(type) {
@@ -2296,65 +2221,5 @@ function deleteTx(id) {
     }
   }
 </script>
-
-<!-- Edit Transaction Modal -->
-<div class="modal fade" id="editTxModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-dark text-white py-2">
-        <h6 class="modal-title fw-bold"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Entry</h6>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="editTxId">
-        <div class="row g-2">
-          <div class="col-6">
-            <label class="form-label small fw-bold mb-1">Date</label>
-            <input type="date" id="editTxDate" class="form-control form-control-sm">
-          </div>
-          <div class="col-6">
-            <label class="form-label small fw-bold mb-1">Bill #</label>
-            <input type="text" id="editTxBill" class="form-control form-control-sm">
-          </div>
-          <div class="col-12">
-            <label class="form-label small fw-bold mb-1">Transaction Type</label>
-            <select id="editTxType" class="form-select form-select-sm">
-              <option value="SALE_CREDIT">Sell on Credit (Udhar)</option>
-              <option value="SALE_CASH">Sell Cash (Naqad)</option>
-              <option value="PAYMENT_REC">Payment Received (Wasooli)</option>
-              <option value="SALE_RETURN">Sale Return (Wapsi)</option>
-              <option value="PURCHASE_CREDIT">Purchase on Credit (Udhar)</option>
-              <option value="PURCHASE_CASH">Purchase Cash (Naqad)</option>
-              <option value="PAYMENT_PAID">Payment Paid (Diya)</option>
-              <option value="PURCHASE_RETURN">Purchase Return (Wapsi)</option>
-            </select>
-          </div>
-          <div class="col-6">
-            <label class="form-label small fw-bold mb-1">Amount (Rs)</label>
-            <input type="number" id="editTxAmount" class="form-control form-control-sm">
-          </div>
-          <div class="col-6">
-            <label class="form-label small fw-bold mb-1">Method</label>
-            <select id="editTxMethod" class="form-select form-select-sm">
-              <option value="Credit">Credit</option>
-              <option value="Cash">Cash</option>
-              <option value="Online / Bank">Online / Bank</option>
-              <option value="Cheque">Cheque</option>
-            </select>
-          </div>
-          <div class="col-12">
-            <label class="form-label small fw-bold mb-1">Notes</label>
-            <input type="text" id="editTxNotes" class="form-control form-control-sm" placeholder="Optional note...">
-          </div>
-        </div>
-      </div>
-      <div class="modal-footer py-2">
-        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-sm btn-primary fw-bold" onclick="saveEditedTx()">Save Changes</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
