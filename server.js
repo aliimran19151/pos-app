@@ -50,15 +50,31 @@ function saveFirebase(path, payload) {
     });
 }
 
+function deleteFirebase(path) {
+    return new Promise((resolve) => {
+        if (!DB_URL) return resolve(false);
+        const url = new URL(`${DB_URL}/${path}.json?auth=${DB_SECRET || ''}`);
+        const req = https.request(url, {
+            method: 'DELETE'
+        }, (res) => {
+            resolve(res.statusCode === 200);
+        });
+        req.on('error', () => resolve(false));
+        req.end();
+    });
+}
+
 function sanitizeUserData(userData) {
     if (!userData) return null;
     if (!userData.profile) userData.profile = { phone: '', pass: '', bizName: 'My Shop' };
     if (!userData.transactions) userData.transactions = [];
     if (!userData.parties) userData.parties = [];
-    
+
     if (userData.profile.isApproved === undefined) userData.profile.isApproved = false;
     if (!userData.profile.expiryDate) userData.profile.expiryDate = null;
     if (!userData.profile.plan) userData.profile.plan = "Pending Approval";
+    if (!userData.profile.adminNote) userData.profile.adminNote = "";
+    if (userData.profile.forgotRequested === undefined) userData.profile.forgotRequested = false;
 
     userData.transactions = userData.transactions.map(t => ({
         id: t.id || Date.now() + Math.random(),
@@ -88,6 +104,7 @@ app.post('/api/register', async (req, res) => {
     try {
         const { phone, pass, bizName } = req.body;
         if (!phone || !pass) return res.status(400).json({ error: "Phone aur Password zaroori hain!" });
+        if (pass.length < 6) return res.status(400).json({ error: "Password kam az kam 6 digits/characters ka hona zaroori hai!" });
 
         const cleanPhone = phone.trim().replace(/[^0-9]/g, '');
         const existing = await fetchFirebase(`users/${cleanPhone}`);
@@ -97,13 +114,15 @@ app.post('/api/register', async (req, res) => {
         }
 
         const newUser = {
-            profile: { 
-                phone: cleanPhone, 
-                pass, 
+            profile: {
+                phone: cleanPhone,
+                pass,
                 bizName: bizName || 'My Shop',
                 isApproved: false,
                 expiryDate: null,
-                plan: "Free Trial / Pending"
+                plan: "Free Trial / Pending",
+                adminNote: "",
+                forgotRequested: false
             },
             transactions: [],
             parties: []
@@ -114,6 +133,26 @@ app.post('/api/register', async (req, res) => {
         else res.status(500).json({ error: "Database Write Error" });
     } catch(err) {
         res.status(500).json({ error: "Server Registration Error" });
+    }
+});
+
+app.post('/api/forgot-password-request', async (req, res) => {
+    try {
+        const { phone } = req.body;
+        if (!phone) return res.status(400).json({ error: "Phone number zaroori hai!" });
+
+        const cleanPhone = phone.trim().replace(/[^0-9]/g, '');
+        let userData = await fetchFirebase(`users/${cleanPhone}`);
+
+        if (!userData || !userData.profile) {
+            return res.status(404).json({ error: "Yeh phone number registered nahi hai!" });
+        }
+
+        userData.profile.forgotRequested = true;
+        await saveFirebase(`users/${cleanPhone}`, userData);
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ error: "Request failed" });
     }
 });
 
@@ -142,13 +181,13 @@ app.post('/api/login', async (req, res) => {
         userData = sanitizeUserData(userData);
 
         if (!userData.profile.isApproved) {
-            return res.status(403).json({ error: "Aapka account abhi active nahi hai. Access ke liye Super Admin se contact karke payment karein." });
+            return res.status(403).json({ error: "Aapka account abhi active nahi hai. Access ke liye Super Admin (03243981059) se contact karein." });
         }
 
         if (userData.profile.expiryDate) {
             const today = new Date().toISOString().split('T')[0];
             if (today > userData.profile.expiryDate) {
-                return res.status(403).json({ error: `Aapka plan (${userData.profile.plan}) expire ho gaya hai! Renew karwane ke liye Admin se contact karein.` });
+                return res.status(403).json({ error: `Aapka plan (${userData.profile.plan}) expire ho gaya hai! Renew karwane ke liye Admin (03243981059) se contact karein.` });
             }
         }
 
@@ -175,15 +214,19 @@ app.get('/api/admin/get-users', async (req, res) => {
 
 app.post('/api/admin/update-access', async (req, res) => {
     try {
-        const { targetPhone, isApproved, days, planName } = req.body;
+        const { targetPhone, isApproved, days, planName, customDate, adminNote } = req.body;
         let userData = await fetchFirebase(`users/${targetPhone}`);
-        
+
         if (!userData) return res.status(404).json({ error: "User nahi mila!" });
 
         userData.profile.isApproved = isApproved;
-        userData.profile.plan = planName;
+        if (planName) userData.profile.plan = planName;
+        if (adminNote !== undefined) userData.profile.adminNote = adminNote;
 
-        if (days > 0) {
+        if (customDate) {
+            userData.profile.expiryDate = customDate;
+            userData.profile.plan = `Custom (${customDate})`;
+        } else if (days > 0) {
             let expDate = new Date();
             expDate.setDate(expDate.getDate() + Number(days));
             userData.profile.expiryDate = expDate.toISOString().split('T')[0];
@@ -198,9 +241,67 @@ app.post('/api/admin/update-access', async (req, res) => {
     }
 });
 
+app.post('/api/admin/edit-user', async (req, res) => {
+    try {
+        const { targetPhone, bizName, pass, expiryDate, isApproved, adminNote } = req.body;
+        let userData = await fetchFirebase(`users/${targetPhone}`);
+
+        if (!userData || !userData.profile) return res.status(404).json({ error: "User nahi mila!" });
+        if (pass && pass.length < 6) return res.status(400).json({ error: "Password minimum 6 digits ka hona chahiye!" });
+
+        if (bizName) userData.profile.bizName = bizName.trim();
+        if (pass) {
+            userData.profile.pass = pass.trim();
+            userData.profile.forgotRequested = false;
+        }
+        userData.profile.expiryDate = expiryDate || null;
+        userData.profile.plan = expiryDate ? `Custom (${expiryDate})` : "Lifetime / No Expiry";
+        userData.profile.isApproved = Boolean(isApproved);
+        userData.profile.adminNote = adminNote || "";
+
+        await saveFirebase(`users/${targetPhone}`, userData);
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ error: "User edit failed" });
+    }
+});
+
+app.post('/api/admin/reset-user-pass', async (req, res) => {
+    try {
+        const { targetPhone, newPass } = req.body;
+        if (!newPass || newPass.length < 6) return res.status(400).json({ error: "Password minimum 6 digits ka hona chahiye!" });
+
+        let userData = await fetchFirebase(`users/${targetPhone}`);
+        if (!userData || !userData.profile) return res.status(404).json({ error: "User nahi mila!" });
+
+        userData.profile.pass = newPass.trim();
+        userData.profile.forgotRequested = false;
+
+        await saveFirebase(`users/${targetPhone}`, userData);
+        res.json({ success: true });
+    } catch(err) {
+        res.status(500).json({ error: "Password reset failed" });
+    }
+});
+
+app.post('/api/admin/delete-user', async (req, res) => {
+    try {
+        const { targetPhone } = req.body;
+        if (!targetPhone) return res.status(400).json({ error: "Phone ID missing!" });
+
+        const ok = await deleteFirebase(`users/${targetPhone}`);
+        if (ok) res.json({ success: true });
+        else res.status(500).json({ error: "Delete failed in database" });
+    } catch(err) {
+        res.status(500).json({ error: "User delete failed" });
+    }
+});
+
 app.post('/api/admin/update-password', async (req, res) => {
     try {
         const { newPass } = req.body;
+        if (!newPass || newPass.length < 6) return res.status(400).json({ error: "Password minimum 6 digits ka hona chahiye!" });
+
         let admin = await fetchFirebase('admin') || { phone: '03000000000', pass: 'admin123' };
         admin.pass = newPass;
         await saveFirebase('admin', admin);

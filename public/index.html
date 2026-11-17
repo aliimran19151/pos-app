@@ -71,7 +71,7 @@
         <input type="text" id="regPhone" class="form-control" placeholder="03001234567" required>
       </div>
       <div class="mb-2">
-        <label class="form-label small fw-bold">Password (Min 6 Characters)</label>
+        <label class="form-label small fw-bold">Password (Min 6 Digits/Characters)</label>
         <div class="pwd-wrapper">
           <input type="password" id="regPass" class="form-control" placeholder="At least 6 digits/chars" required minlength="6">
           <i class="fa-solid fa-eye pwd-toggle" id="toggleRegPass" onclick="togglePasswordVisibility('regPass', 'toggleRegPass')"></i>
@@ -109,12 +109,12 @@
       <div class="modal-body">
         <i class="fa-solid fa-circle-check text-success fa-4x mb-3"></i>
         <h4 class="fw-bold text-dark">Account Created Successfully!</h4>
-        <p class="text-secondary small mb-3">Aapka account register ho gaya hai. System Access & Activation ke liye niche diye gaye number par raabta karein:</p>
+        <p class="text-secondary small mb-3">Aapka account register ho gaya hai. System Access & Service ke liye niche diye gaye number par raabta karein:</p>
         
         <div class="p-3 bg-light rounded border mb-3">
-          <h5 class="fw-bold text-primary mb-1"><i class="fa-solid fa-headset me-2"></i>POS Admin Support</h5>
+          <h5 class="fw-bold text-primary mb-1"><i class="fa-solid fa-headset me-2"></i>POS Malik / Support</h5>
           <h3 class="fw-bold text-dark tracking-wide my-2">03243981059</h3>
-          <small class="text-muted">Service activation, subscription aur help ke liye contact karein.</small>
+          <small class="text-muted">Service ke liye is number par raabta karein.</small>
         </div>
 
         <a href="https://wa.me/923243981059" target="_blank" class="btn btn-success w-100 fw-bold py-2 mb-2">
@@ -148,7 +148,7 @@
     </div>
     <div class="col-6 col-md-3">
       <div class="card card-stat p-3 bg-white border-start border-warning border-4">
-        <small class="text-muted fw-bold" style="font-size:11px;">PENDING / EXPIRED</small>
+        <small class="text-muted fw-bold" style="font-size:11px;">PENDING / HOLD</small>
         <h3 class="fw-bold text-warning mb-0" id="adminPendingUsers">0</h3>
       </div>
     </div>
@@ -216,25 +216,45 @@
   </div>
 </div>
 
-<!-- CHANGE USER PASSWORD MODAL FOR ADMIN -->
-<div class="modal fade" id="adminResetPassModal" tabindex="-1">
+<!-- EDIT USER ACCOUNT MODAL FOR ADMIN -->
+<div class="modal fade" id="adminEditUserModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-dark text-white p-2 px-3">
-        <h6 class="modal-title fw-bold">Reset User Password</h6>
+      <div class="modal-header bg-primary text-white p-2 px-3">
+        <h6 class="modal-title fw-bold"><i class="fa-solid fa-user-pen me-1"></i> Edit User Account & Custom Expiry</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <input type="hidden" id="resetUserPhoneTarget">
-        <div class="mb-3">
-          <label class="form-label small fw-bold">User Phone ID</label>
-          <input type="text" id="resetUserPhoneDisplay" class="form-control" readonly>
-        </div>
-        <div class="mb-3">
-          <label class="form-label small fw-bold">New Password For User (Min 6 Digits)</label>
-          <input type="text" id="resetUserNewPass" class="form-control" placeholder="Enter at least 6 digits" required minlength="6">
-        </div>
-        <button type="button" class="btn btn-success w-100 fw-bold" onclick="submitUserPasswordChange()">Update Password</button>
+        <form onsubmit="submitEditUser(event)">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Phone ID (Cannot be changed)</label>
+            <input type="text" id="editUserPhone" class="form-control form-control-sm bg-light" readonly>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Business Name</label>
+            <input type="text" id="editUserBizName" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Password (Min 6 Digits)</label>
+            <input type="text" id="editUserPass" class="form-control form-control-sm" required minlength="6">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Custom Expiry Date (Leave empty for Lifetime)</label>
+            <input type="date" id="editUserExpiry" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Account Status</label>
+            <select id="editUserStatus" class="form-select form-select-sm fw-bold">
+              <option value="true">Active Access</option>
+              <option value="false">Hold / Blocked</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Admin Private Note</label>
+            <input type="text" id="editUserNote" class="form-control form-control-sm" placeholder="Payment or internal details">
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold">Save User Changes</button>
+        </form>
       </div>
     </div>
   </div>
@@ -723,7 +743,7 @@
       });
       let data = await res.json();
       if(data.success) {
-        alert("Aapki request submit ho gaya hai! System owner/admin se 03243981059 par raabta karein password reset karwane ke liye.");
+        alert("Aapki request submit ho gayi hai! System owner/admin se 03243981059 par raabta karein password reset karwane ke liye.");
         toggleAuth('login');
       } else {
         alert(data.error || "Phone number not found!");
@@ -831,10 +851,7 @@
         <tr>
           <td><strong>${u.bizName}</strong>${forgotBadge}</td>
           <td class="fw-bold">${u.phone}</td>
-          <td>
-            <span class="badge bg-dark">${u.pass || '***'}</span>
-            <button class="btn btn-sm btn-outline-secondary py-0 ms-1" onclick="openResetPassModal('${u.phone}')"><i class="fa-solid fa-pen-to-square"></i></button>
-          </td>
+          <td><span class="badge bg-dark">${u.pass || '***'}</span></td>
           <td>
             <span class="badge bg-info text-dark mb-1">${u.plan || 'No Plan'}</span><br>
             <small class="fw-bold text-secondary">${exp}</small>
@@ -848,17 +865,21 @@
           <td>${statusBadge}</td>
           <td>
             <div class="mb-1">
-              <select class="form-select form-select-sm d-inline-block w-auto me-1" id="planSelect_${u.phone}">
+              <select class="form-select form-select-sm d-inline-block w-auto" id="planSelect_${u.phone}">
                 <option value="CUSTOM_CUSTOM DATE">Use Calendar Date</option>
                 <option value="7_7 Days Trial">7 Days Trial</option>
-                <option value="30_1 Month ($30)">1 Month ($30)</option>
-                <option value="90_3 Months ($70)">3 Months ($70)</option>
-                <option value="365_1 Year ($200)">1 Year ($200)</option>
-                <option value="3650_10 Years Lifetime">10 Years Lifetime</option>
+                <option value="30_1 Month">1 Month</option>
+                <option value="90_3 Months">3 Months</option>
+                <option value="365_1 Year">1 Year</option>
+                <option value="0_Lifetime">Lifetime</option>
               </select>
             </div>
-            <button class="btn btn-sm btn-success fw-bold me-1 py-1" onclick="approveUserPlan('${u.phone}', true)"><i class="fa-solid fa-check"></i> Approve</button>
-            <button class="btn btn-sm btn-danger fw-bold py-1" onclick="approveUserPlan('${u.phone}', false)"><i class="fa-solid fa-pause"></i> Hold</button>
+            <div class="d-flex justify-content-center gap-1 flex-wrap">
+              <button class="btn btn-sm btn-success fw-bold py-1" title="Approve / Update" onclick="approveUserPlan('${u.phone}', true)"><i class="fa-solid fa-check"></i></button>
+              <button class="btn btn-sm btn-warning fw-bold py-1 text-dark" title="Hold / Pause" onclick="approveUserPlan('${u.phone}', false)"><i class="fa-solid fa-pause"></i></button>
+              <button class="btn btn-sm btn-primary fw-bold py-1" title="Edit User" onclick="openEditUserModal('${u.phone}')"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button class="btn btn-sm btn-danger fw-bold py-1" title="Delete Account" onclick="deleteUserAccount('${u.phone}', '${u.bizName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </td>
         </tr>
       `;
@@ -867,48 +888,90 @@
     tbody.innerHTML = html || `<tr><td colspan="8" class="text-muted">No users found.</td></tr>`;
   }
 
-  function openResetPassModal(phone) {
-    document.getElementById("resetUserPhoneTarget").value = phone;
-    document.getElementById("resetUserPhoneDisplay").value = phone;
-    document.getElementById("resetUserNewPass").value = "";
-    new bootstrap.Modal(document.getElementById("adminResetPassModal")).show();
+  function openEditUserModal(phone) {
+    let u = cachedAdminUsersList.find(user => user.phone === phone);
+    if (!u) return;
+
+    document.getElementById("editUserPhone").value = u.phone;
+    document.getElementById("editUserBizName").value = u.bizName || "";
+    document.getElementById("editUserPass").value = u.pass || "";
+    document.getElementById("editUserExpiry").value = u.expiryDate || "";
+    document.getElementById("editUserStatus").value = u.isApproved ? "true" : "false";
+    document.getElementById("editUserNote").value = u.adminNote || "";
+
+    new bootstrap.Modal(document.getElementById("adminEditUserModal")).show();
   }
 
-  async function submitUserPasswordChange() {
-    let targetPhone = document.getElementById("resetUserPhoneTarget").value;
-    let newPass = document.getElementById("resetUserNewPass").value.trim();
-    if(!newPass || newPass.length < 6) return alert("Password minimum 6 digits/characters ka hona zaroori hai!");
+  async function submitEditUser(e) {
+    e.preventDefault();
+    let targetPhone = document.getElementById("editUserPhone").value;
+    let bizName = document.getElementById("editUserBizName").value.trim();
+    let pass = document.getElementById("editUserPass").value.trim();
+    let expiryDate = document.getElementById("editUserExpiry").value;
+    let isApproved = document.getElementById("editUserStatus").value === "true";
+    let adminNote = document.getElementById("editUserNote").value.trim();
+
+    if (pass.length < 6) {
+      return alert("Password kam az kam 6 digits/characters ka hona zaroori hai!");
+    }
 
     try {
-      let res = await fetch('/api/admin/reset-user-pass', {
+      let res = await fetch('/api/admin/edit-user', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetPhone, newPass })
+        body: JSON.stringify({ targetPhone, bizName, pass, expiryDate, isApproved, adminNote })
       });
       let data = await res.json();
-      if(data.success) {
-        alert("User Password successfully updated!");
-        bootstrap.Modal.getInstance(document.getElementById("adminResetPassModal")).hide();
+      if (data.success) {
+        alert("User account details successfully updated!");
+        bootstrap.Modal.getInstance(document.getElementById("adminEditUserModal")).hide();
         loadAdminUsersList();
+      } else {
+        alert(data.error || "Update failed!");
       }
-    } catch(e) {}
+    } catch(err) {
+      alert("Server connection error!");
+    }
+  }
+
+  async function deleteUserAccount(phone, bizName) {
+    if (!confirm(`Kya aap waqai "${bizName}" (${phone}) ka poora account aur iska sara data permanently delete karna chahte hain? Yeh wapis nahi aayega!`)) {
+      return;
+    }
+
+    try {
+      let res = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPhone: phone })
+      });
+      let data = await res.json();
+      if (data.success) {
+        alert("User account permanently delete kar diya gaya hai!");
+        loadAdminUsersList();
+      } else {
+        alert(data.error || "Delete failed!");
+      }
+    } catch(err) {
+      alert("Server error while deleting user!");
+    }
   }
 
   async function approveUserPlan(phone, isApproved) {
     let sel = document.getElementById(`planSelect_${phone}`);
-    let val = sel ? sel.value : "30_1 Month ($30)";
+    let val = sel ? sel.value : "CUSTOM_CUSTOM DATE";
     let customDate = document.getElementById(`customExpDate_${phone}`).value;
     let adminNote = document.getElementById(`adminNote_${phone}`).value;
 
     let parts = val.split('_');
-    let days = Number(parts[0]);
+    let days = parts[0] === "CUSTOM" ? -1 : Number(parts[0]);
     let planName = parts[1];
 
     try {
       let res = await fetch('/api/admin/update-access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetPhone: phone, isApproved, days, planName, customDate, adminNote })
+        body: JSON.stringify({ targetPhone: phone, isApproved, days, planName, customDate: parts[0] === "CUSTOM" ? customDate : "", adminNote })
       });
       let data = await res.json();
       if (data.success) {
