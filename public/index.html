@@ -377,6 +377,17 @@
               <div class="col-6 col-md-3 text-end">
                 <button class="btn btn-outline-danger w-100 fw-bold" onclick="generatePartyLedgerPDF()"><i class="fa-solid fa-file-pdf me-1"></i> Download PDF</button>
               </div>
+              <div class="col-5 col-md-4 mt-2">
+                <label class="form-label small fw-bold text-secondary mb-0">From Date</label>
+                <input type="date" id="ledgerFromDate" class="form-control form-control-sm" onchange="searchPartyLedger()">
+              </div>
+              <div class="col-5 col-md-4 mt-2">
+                <label class="form-label small fw-bold text-secondary mb-0">To Date</label>
+                <input type="date" id="ledgerToDate" class="form-control form-control-sm" onchange="searchPartyLedger()">
+              </div>
+              <div class="col-2 col-md-4 mt-2 d-flex align-items-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100 fw-bold" onclick="clearLedgerDateFilter()">Clear</button>
+              </div>
             </div>
           </div>
 
@@ -1691,9 +1702,17 @@
     }
   }
 
+  function clearLedgerDateFilter() {
+    document.getElementById("ledgerFromDate").value = "";
+    document.getElementById("ledgerToDate").value = "";
+    searchPartyLedger();
+  }
+
   function searchPartyLedger() {
     let query = document.getElementById("partySearchInput").value.trim().toLowerCase();
     let role = document.getElementById("partyRoleFilter").value;
+    let fromDate = document.getElementById("ledgerFromDate") ? document.getElementById("ledgerFromDate").value : "";
+    let toDate = document.getElementById("ledgerToDate") ? document.getElementById("ledgerToDate").value : "";
     let tbody = document.getElementById("partyLedgerBody");
 
     if (!query) {
@@ -1734,7 +1753,9 @@
     let filtered = userTransactions.filter(t => {
       let matchName = t.name.toLowerCase() === exactMatchName.toLowerCase();
       let matchRole = (role === "ALL") || (t.role === role);
-      return matchName && matchRole;
+      let matchFrom = !fromDate || (t.date >= fromDate);
+      let matchTo = !toDate || (t.date <= toDate);
+      return matchName && matchRole && matchFrom && matchTo;
     });
 
     document.getElementById("selectedPartyName").innerText = exactMatchName;
@@ -1742,7 +1763,7 @@
     let netBalance = 0, rows = "";
     filtered.forEach(t => {
       if (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT") netBalance += t.amount;
-      else netBalance -= t.amount;
+      else if (t.type === "PAYMENT_REC" || t.type === "PAYMENT_PAID" || t.type === "SALE_RETURN" || t.type === "PURCHASE_RETURN") netBalance -= t.amount;
 
       let picBtn = t.img ? `<button class="btn btn-sm btn-outline-info" onclick="viewBillPic('${t.id}')"><i class="fa-solid fa-image"></i> Pic</button>` : `<span class="text-muted small">No Pic</span>`;
 
@@ -1758,7 +1779,7 @@
       `;
     });
 
-    tbody.innerHTML = rows || `<tr><td colspan="6" class="text-muted">No transactions found for this party.</td></tr>`;
+    tbody.innerHTML = rows || `<tr><td colspan="6" class="text-muted">No transactions found in this date range.</td></tr>`;
     document.getElementById("selectedPartyBalance").innerText = "Rs. " + netBalance.toLocaleString();
   }
 
@@ -1824,8 +1845,15 @@
     const partyPhone = (partyObj && partyObj.phone) ? partyObj.phone : "-";
     const partyRole = (partyObj && partyObj.role) ? partyObj.role : "Party";
 
+    const fromDate = document.getElementById("ledgerFromDate") ? document.getElementById("ledgerFromDate").value : "";
+    const toDate = document.getElementById("ledgerToDate") ? document.getElementById("ledgerToDate").value : "";
     const partyTxs = userTransactions
-      .filter(t => t.name.toLowerCase() === partyName.toLowerCase())
+      .filter(t => {
+        const matchName = t.name.toLowerCase() === partyName.toLowerCase();
+        const matchFrom = !fromDate || (t.date >= fromDate);
+        const matchTo = !toDate || (t.date <= toDate);
+        return matchName && matchFrom && matchTo;
+      })
       .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     let totalDebit = 0;
@@ -1884,7 +1912,8 @@
     doc.text("PARTY LEDGER & ACCOUNT STATEMENT" + (bizPhone ? "  |  Ph: " + bizPhone : ""), 14, 22);
 
     const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-    doc.text("Statement Date: " + todayStr, 196, 15, { align: 'right' });
+    const rangeLabel = (fromDate || toDate) ? `Period: ${fromDate || 'Start'} to ${toDate || 'Today'}` : `Statement Date: ${todayStr}`;
+    doc.text(rangeLabel, 196, 15, { align: 'right' });
     doc.text("Total Entries: " + partyTxs.length, 196, 22, { align: 'right' });
 
     // Party Info Box
