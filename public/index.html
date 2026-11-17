@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
@@ -1815,45 +1816,174 @@
       return;
     }
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'mm', 'a4');
 
+    const bizName = (currentUser && currentUser.bizName) ? currentUser.bizName : "MY SHOP";
+    const bizPhone = (currentUser && currentUser.phone) ? currentUser.phone : "";
+    const partyObj = userParties.find(p => p.name.toLowerCase() === partyName.toLowerCase());
+    const partyPhone = (partyObj && partyObj.phone) ? partyObj.phone : "-";
+    const partyRole = (partyObj && partyObj.role) ? partyObj.role : "Party";
+
+    const partyTxs = userTransactions
+      .filter(t => t.name.toLowerCase() === partyName.toLowerCase())
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let runningBal = 0;
+
+    const tableRows = partyTxs.map(t => {
+      const amt = Number(t.amount) || 0;
+      const isDebit = (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT");
+      const isCashOnly = (t.type === "SALE_CASH" || t.type === "PURCHASE_CASH");
+
+      let debitStr = "-";
+      let creditStr = "-";
+
+      if (isDebit) {
+        totalDebit += amt;
+        runningBal += amt;
+        debitStr = "Rs. " + amt.toLocaleString();
+      } else if (!isCashOnly) {
+        totalCredit += amt;
+        runningBal -= amt;
+        creditStr = "Rs. " + amt.toLocaleString();
+      }
+
+      let typeLabel = "Bill / Udhar";
+      if (t.type === "PAYMENT_REC" || t.type === "PAYMENT_PAID") typeLabel = "Wasooli / Jama";
+      else if (t.type === "SALE_RETURN" || t.type === "PURCHASE_RETURN") typeLabel = "Return / Wapsi";
+      else if (isCashOnly) typeLabel = "Naqad Bill (Paid)";
+
+      const detailParts = [
+        typeLabel,
+        t.method ? `(${t.method})` : "",
+        (t.notes && t.notes !== "-") ? `- ${t.notes}` : ""
+      ].filter(Boolean).join(" ");
+
+      return [
+        t.date || "-",
+        t.billNo || "-",
+        detailParts,
+        debitStr,
+        creditStr,
+        "Rs. " + runningBal.toLocaleString()
+      ];
+    });
+
+    // Top Navy Corporate Banner
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 34, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(bizName.toUpperCase(), 14, 15);
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(16);
-    doc.text("Party Ledger: " + partyName, 14, 15);
-    
-    doc.setFontSize(10);
-    let biz = currentUser && currentUser.bizName ? currentUser.bizName : "POS System";
-    doc.text("Shop Name: " + biz, 14, 22);
+    doc.setFontSize(9);
+    doc.setTextColor(203, 213, 225);
+    doc.text("PARTY LEDGER & ACCOUNT STATEMENT" + (bizPhone ? "  |  Ph: " + bizPhone : ""), 14, 22);
 
-    let partyTxs = userTransactions.filter(function(t) {
-      return t.name.toLowerCase() === partyName.toLowerCase();
-    });
+    const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    doc.text("Statement Date: " + todayStr, 196, 15, { align: 'right' });
+    doc.text("Total Entries: " + partyTxs.length, 196, 22, { align: 'right' });
 
-    let total = 0, paid = 0;
-    partyTxs.forEach(function(t) {
-      if (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT") total += Number(t.amount) || 0;
-      else if (t.type === "PAYMENT_REC" || t.type === "PAYMENT_PAID" || t.type === "SALE_RETURN" || t.type === "PURCHASE_RETURN") paid += Number(t.amount) || 0;
-    });
-    let netBal = total - paid;
-    doc.text("Net Balance: Rs. " + netBal.toLocaleString(), 14, 28);
+    // Party Info Box
+    doc.setDrawColor(203, 213, 225);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, 40, 182, 17, 2, 2, 'FD');
+    doc.setTextColor(71, 85, 105);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("ACCOUNT / PARTY NAME:", 18, 46);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(12);
+    doc.text(partyName.toUpperCase(), 18, 53);
 
-    let y = 40;
+    doc.setTextColor(71, 85, 105);
+    doc.setFontSize(8.5);
+    doc.text("Role: " + partyRole, 192, 46, { align: 'right' });
+    doc.text("Contact: " + partyPhone, 192, 53, { align: 'right' });
+
+    // 3 Summary Boxes
+    const boxY = 62;
+    // Box 1: Total Udhar (Debit)
+    doc.setFillColor(254, 242, 242);
+    doc.setDrawColor(252, 165, 165);
+    doc.roundedRect(14, boxY, 58, 17, 2, 2, 'FD');
+    doc.setTextColor(153, 27, 27);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL UDHAR (DEBIT)", 18, boxY + 6);
     doc.setFontSize(11);
-    doc.text("Date | Bill # | Type | Amount (Method) | Notes", 14, y);
-    y += 8;
+    doc.text("Rs. " + totalDebit.toLocaleString(), 18, boxY + 13);
 
-    if (partyTxs.length === 0) {
-      doc.text("No transactions found for this party.", 14, y);
-    } else {
-      partyTxs.forEach(function(t) {
-        if (y > 270) {
-          doc.addPage();
-          y = 20;
+    // Box 2: Total Wasooli (Credit)
+    doc.setFillColor(240, 253, 244);
+    doc.setDrawColor(134, 239, 172);
+    doc.roundedRect(76, boxY, 58, 17, 2, 2, 'FD');
+    doc.setTextColor(22, 101, 52);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL WASOOLI (CREDIT)", 80, boxY + 6);
+    doc.setFontSize(11);
+    doc.text("Rs. " + totalCredit.toLocaleString(), 80, boxY + 13);
+
+    // Box 3: Net Baqaya (Balance)
+    doc.setFillColor(239, 246, 255);
+    doc.setDrawColor(147, 197, 253);
+    doc.roundedRect(138, boxY, 58, 17, 2, 2, 'FD');
+    doc.setTextColor(30, 58, 138);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("NET BAQAYA (BALANCE)", 142, boxY + 6);
+    doc.setFontSize(11);
+    doc.text("Rs. " + runningBal.toLocaleString(), 142, boxY + 13);
+
+    // Professional Grid Table
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 85,
+        head: [['Date', 'Bill #', 'Particulars / Method', 'Udhar (Debit)', 'Jama (Credit)', 'Balance']],
+        body: tableRows.length > 0 ? tableRows : [['-', '-', 'No transactions found', '-', '-', 'Rs. 0']],
+        theme: 'grid',
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8.5,
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 8.5,
+          cellPadding: 3,
+          lineColor: [203, 213, 225],
+          lineWidth: 0.2,
+          textColor: [30, 41, 59]
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 23, halign: 'center' },
+          1: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+          2: { cellWidth: 54 },
+          3: { cellWidth: 26, halign: 'right', textColor: [185, 28, 28] },
+          4: { cellWidth: 26, halign: 'right', textColor: [21, 128, 61] },
+          5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' }
         }
-        let lineText = t.date + " | " + t.billNo + " | " + t.type + " | Rs. " + Number(t.amount).toLocaleString() + " (" + (t.method || 'Credit') + ") | " + (t.notes || '-');
-        doc.text(lineText, 14, y);
-        y += 8;
       });
+    }
+
+    // Footer & Signature Lines
+    const finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 20 : 250;
+    if (finalY < 275) {
+      doc.setDrawColor(148, 163, 184);
+      doc.line(14, finalY, 68, finalY);
+      doc.line(142, finalY, 196, finalY);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Customer / Party Signature", 14, finalY + 5);
+      doc.text("Authorized Stamp & Signature", 196, finalY + 5, { align: 'right' });
     }
 
     doc.save(partyName.replace(/\s+/g, '_') + "_Ledger.pdf");
@@ -1866,26 +1996,20 @@
     }
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(18);
-    doc.text(type + " Dues Report", 14, 20);
-    doc.setFontSize(11);
-    doc.text("Business Name: " + (currentUser && currentUser.bizName ? currentUser.bizName : 'POS System'), 14, 28);
-    doc.text("Date: " + new Date().toISOString().split('T')[0], 14, 34);
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const bizName = (currentUser && currentUser.bizName) ? currentUser.bizName : 'MY SHOP';
 
     let duesMap = {};
-    
     if (typeof userParties !== 'undefined') {
-      userParties.filter(function(p) { return p.role === type; }).forEach(function(p) {
-        duesMap[p.name] = { total: 0, paid: 0 };
+      userParties.filter(p => p.role === type).forEach(p => {
+        duesMap[p.name] = { phone: p.phone || '-', total: 0, paid: 0 };
       });
     }
 
     if (typeof userTransactions !== 'undefined') {
-      userTransactions.forEach(function(t) {
+      userTransactions.forEach(t => {
         if (t.role === type) {
-          if (!duesMap[t.name]) duesMap[t.name] = { total: 0, paid: 0 };
+          if (!duesMap[t.name]) duesMap[t.name] = { phone: '-', total: 0, paid: 0 };
           if (type === "Customer") {
             if (t.type === "SALE_CREDIT") duesMap[t.name].total += Number(t.amount) || 0;
             else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") duesMap[t.name].paid += Number(t.amount) || 0;
@@ -1897,43 +2021,65 @@
       });
     }
 
-    let rows = [];
+    let tableBody = [];
     let grandTotal = 0;
-    
+    let sr = 1;
+
     for (let name in duesMap) {
       let net = duesMap[name].total - duesMap[name].paid;
       if (net !== 0) {
         grandTotal += net;
-        rows.push({ name: name, net: net });
+        tableBody.push([
+          sr++,
+          name,
+          duesMap[name].phone,
+          "Rs. " + duesMap[name].total.toLocaleString(),
+          "Rs. " + duesMap[name].paid.toLocaleString(),
+          "Rs. " + net.toLocaleString()
+        ]);
       }
     }
 
-    if (rows.length === 0) {
+    if (tableBody.length === 0) {
       alert("Koi " + type + " Due data maujood nahi hai!");
       return;
     }
 
-    let y = 46;
-    doc.setFontSize(12);
+    // Header Banner
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 32, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFont("helvetica", "bold");
-    doc.text(type + " Name", 14, y);
-    doc.text('Net Balance', 130, y);
-    y += 4;
-    doc.line(14, y, 195, y);
-    y += 8;
-
+    doc.setFontSize(17);
+    doc.text(bizName.toUpperCase(), 14, 14);
     doc.setFont("helvetica", "normal");
-    rows.forEach(function(r) {
-      doc.text(r.name, 14, y);
-      doc.text("Rs. " + r.net.toLocaleString(), 130, y);
-      y += 8;
-    });
+    doc.setFontSize(9.5);
+    doc.setTextColor(203, 213, 225);
+    doc.text(type.toUpperCase() + " COMBINED DUES SUMMARY REPORT", 14, 22);
+    doc.text("Date: " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), 196, 14, { align: 'right' });
+    doc.text("Total Parties: " + tableBody.length, 196, 22, { align: 'right' });
 
-    y += 6;
-    doc.line(14, y, 195, y);
-    y += 10;
-    doc.setFont("helvetica", "bold");
-    doc.text("Total Dues Amount: Rs. " + grandTotal.toLocaleString(), 14, y);
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 38,
+        head: [['#', type + ' Name', 'Phone', 'Total Udhar', 'Total Jama', 'Net Balance']],
+        body: tableBody,
+        foot: [['', 'GRAND TOTAL', '', '', '', 'Rs. ' + grandTotal.toLocaleString()]],
+        theme: 'grid',
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
+        footStyles: { fillColor: [239, 246, 255], textColor: [30, 58, 138], fontStyle: 'bold', fontSize: 9.5, halign: 'right' },
+        styles: { fontSize: 8.5, cellPadding: 3, lineColor: [203, 213, 225], lineWidth: 0.2 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: {
+          0: { cellWidth: 12, halign: 'center' },
+          1: { cellWidth: 54, fontStyle: 'bold' },
+          2: { cellWidth: 30, halign: 'center' },
+          3: { cellWidth: 28, halign: 'right' },
+          4: { cellWidth: 28, halign: 'right' },
+          5: { cellWidth: 30, halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] }
+        }
+      });
+    }
 
     doc.save(type + "_Dues_Report.pdf");
   }
