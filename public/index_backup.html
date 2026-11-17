@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Shop POS & Super Admin System</title>
+  <title>Smart Shop POS & Ultimate Super Admin System</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
   <style>
     :root { --primary-color: #1e293b; --accent-color: #2563eb; --bg-light: #f1f5f9; }
@@ -18,19 +18,16 @@
     .sidebar .nav-link, .mobile-nav-link { color: #94a3b8; font-size: 1rem; padding: 10px 15px; border-radius: 8px; margin-bottom: 5px; cursor: pointer; text-decoration: none; display: block; }
     .sidebar .nav-link:hover, .sidebar .nav-link.active, .mobile-nav-link.active { background-color: #334155; color: #fff; }
     .card-stat { border-radius: 12px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-    .auth-container { max-width: 420px; margin: 60px auto; }
+    .auth-container { max-width: 440px; margin: 40px auto; }
     .pwd-wrapper { position: relative; }
     .pwd-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #64748b; }
     .mobile-header { background-color: var(--primary-color); color: white; padding: 10px 15px; }
     .multi-entry-row { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
     .img-preview { max-height: 80px; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 5px; }
-    .pricing-card { border: 1px solid #e2e8f0; border-radius: 10px; transition: 0.3s; }
-    .pricing-card:hover { border-color: #2563eb; transform: translateY(-2px); }
   </style>
 </head>
 <body>
 
-<!-- LOGIN / SIGNUP SCREEN -->
 <div id="authScreen" class="container">
   <div class="card card-stat p-4 auth-container bg-white shadow-lg">
     <div class="text-center mb-3">
@@ -38,6 +35,7 @@
       <p class="text-muted small" id="authTitle">Sign in with Unique Phone Number</p>
     </div>
 
+    <!-- LOGIN FORM -->
     <form id="loginForm" onsubmit="handleLogin(event)">
       <div class="mb-3">
         <label class="form-label small fw-bold">Phone Number (Login ID)</label>
@@ -46,20 +44,24 @@
       <div class="mb-3">
         <label class="form-label small fw-bold">Password</label>
         <div class="pwd-wrapper">
-          <input type="password" id="loginPass" class="form-control" placeholder="******" required>
+          <input type="password" id="loginPass" class="form-control" placeholder="******" required minlength="6">
           <i class="fa-solid fa-eye pwd-toggle" id="toggleLoginPass" onclick="togglePasswordVisibility('loginPass', 'toggleLoginPass')"></i>
         </div>
       </div>
-      <div class="form-check mb-3">
-        <input class="form-check-input" type="checkbox" id="rememberMe">
-        <label class="form-check-label small fw-bold text-secondary" for="rememberMe">Remember Me</label>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="rememberMe">
+          <label class="form-check-label small fw-bold text-secondary" for="rememberMe">Remember Me</label>
+        </div>
+        <a href="#" class="small text-danger fw-bold text-decoration-none" onclick="toggleAuth('forgot')">Forgot Password?</a>
       </div>
       <button type="submit" id="loginBtn" class="btn btn-primary w-100 fw-bold py-2 mb-2">Login</button>
       <div class="text-center mb-2">
-        <small class="text-muted">Account nahi hai? <a href="#" onclick="toggleAuth(true)">Naya Account Banao</a></small>
+        <small class="text-muted">Account nahi hai? <a href="#" onclick="toggleAuth('register')">Naya Account Banao</a></small>
       </div>
     </form>
 
+    <!-- REGISTER FORM -->
     <form id="registerForm" class="d-none" onsubmit="handleRegister(event)">
       <div class="mb-2">
         <label class="form-label small fw-bold">Business Name</label>
@@ -70,88 +72,196 @@
         <input type="text" id="regPhone" class="form-control" placeholder="03001234567" required>
       </div>
       <div class="mb-2">
-        <label class="form-label small fw-bold">Password</label>
+        <label class="form-label small fw-bold">Password (Min 6 Digits/Characters)</label>
         <div class="pwd-wrapper">
-          <input type="password" id="regPass" class="form-control" placeholder="******" required>
+          <input type="password" id="regPass" class="form-control" placeholder="At least 6 digits/chars" required minlength="6">
           <i class="fa-solid fa-eye pwd-toggle" id="toggleRegPass" onclick="togglePasswordVisibility('regPass', 'toggleRegPass')"></i>
         </div>
+        <small class="text-muted" style="font-size:11px;">Password kam az kam 6 digits ka hona chahiye.</small>
       </div>
       <button type="submit" id="regBtn" class="btn btn-success w-100 fw-bold py-2 mb-2">Create Account</button>
       <div class="text-center">
-        <small class="text-muted">Pehle se account hai? <a href="#" onclick="toggleAuth(false)">Login Karein</a></small>
+        <small class="text-muted">Pehle se account hai? <a href="#" onclick="toggleAuth('login')">Login Karein</a></small>
       </div>
     </form>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <form id="forgotForm" class="d-none" onsubmit="handleForgotRequest(event)">
+      <div class="p-2 alert alert-warning small mb-3">
+        <i class="fa-solid fa-info-circle me-1"></i> Apna registered phone number likhein, Admin tak aapki request chali jayegi.
+      </div>
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Registered Phone Number</label>
+        <input type="text" id="forgotPhone" class="form-control" placeholder="03001234567" required>
+      </div>
+      <button type="submit" class="btn btn-warning w-100 fw-bold text-dark mb-2">Request Password Reset</button>
+      <div class="text-center">
+        <small class="text-muted"><a href="#" onclick="toggleAuth('login')">Back to Login</a></small>
+      </div>
+    </form>
+
   </div>
 </div>
 
-<!-- SUPER ADMIN DASHBOARD PANEL -->
+<!-- REGISTRATION SUCCESS & ADMIN CONTACT MODAL -->
+<div class="modal fade" id="regSuccessModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content text-center p-3">
+      <div class="modal-body">
+        <i class="fa-solid fa-circle-check text-success fa-4x mb-3"></i>
+        <h4 class="fw-bold text-dark">Account Created Successfully!</h4>
+        <p class="text-secondary small mb-3">Aapka account register ho gaya hai. System Access & Service ke liye niche diye gaye number par raabta karein:</p>
+        
+        <div class="p-3 bg-light rounded border mb-3">
+          <h5 class="fw-bold text-primary mb-1"><i class="fa-solid fa-headset me-2"></i>POS Malik / Support</h5>
+          <h3 class="fw-bold text-dark tracking-wide my-2">03243981059</h3>
+          <small class="text-muted">Service ke liye is number par raabta karein.</small>
+        </div>
+
+        <a href="https://wa.me/923243981059" target="_blank" class="btn btn-success w-100 fw-bold py-2 mb-2">
+          <i class="fa-brands fa-whatsapp me-2"></i> Open WhatsApp Chat
+        </a>
+        <button type="button" class="btn btn-secondary w-100 fw-bold btn-sm" data-bs-dismiss="modal">Close & Go to Login</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ULTIMATE SUPER ADMIN PANEL -->
 <div id="superAdminApp" class="container-fluid d-none p-3 p-md-4">
   <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-    <h3 class="fw-bold text-danger mb-0"><i class="fa-solid fa-user-shield me-2"></i>Super Admin Control Panel</h3>
+    <h3 class="fw-bold text-danger mb-0"><i class="fa-solid fa-user-shield me-2"></i>Ultimate Super Admin Control Panel</h3>
     <button class="btn btn-outline-danger fw-bold btn-sm" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-1"></i> Logout Admin</button>
   </div>
 
   <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-      <div class="card card-stat p-3 bg-white">
-        <small class="text-muted fw-bold" style="font-size:11px;">TOTAL USERS</small>
+      <div class="card card-stat p-3 bg-white border-start border-primary border-4">
+        <small class="text-muted fw-bold" style="font-size:11px;">TOTAL REGISTERED USERS</small>
         <h3 class="fw-bold text-primary mb-0" id="adminTotalUsers">0</h3>
       </div>
     </div>
     <div class="col-6 col-md-3">
-      <div class="card card-stat p-3 bg-white">
+      <div class="card card-stat p-3 bg-white border-start border-success border-4">
         <small class="text-muted fw-bold" style="font-size:11px;">ACTIVE SUBSCRIPTIONS</small>
         <h3 class="fw-bold text-success mb-0" id="adminActiveUsers">0</h3>
       </div>
     </div>
-  </div>
-
-  <!-- PRICING TIERS REFERENCE CARD -->
-  <div class="card card-stat p-3 bg-white mb-4">
-    <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-tags me-2"></i>Subscription Pricing Guide</h6>
-    <div class="row g-2 text-center">
-      <div class="col-4 col-md-2"><div class="pricing-card p-2"><strong>7 Days</strong><div class="text-success small fw-bold">Trial</div></div></div>
-      <div class="col-4 col-md-2"><div class="pricing-card p-2"><strong>1 Month</strong><div class="text-primary small fw-bold">$30</div></div></div>
-      <div class="col-4 col-md-2"><div class="pricing-card p-2"><strong>3 Months</strong><div class="text-primary small fw-bold">$70</div></div></div>
-      <div class="col-4 col-md-2"><div class="pricing-card p-2"><strong>6 Months</strong><div class="text-primary small fw-bold">$120</div></div></div>
-      <div class="col-4 col-md-2"><div class="pricing-card p-2"><strong>1 Year</strong><div class="text-primary small fw-bold">$200</div></div></div>
-      <div class="col-4 col-md-2"><div class="pricing-card p-2"><strong>10 Years</strong><div class="text-danger small fw-bold">Lifetime</div></div></div>
+    <div class="col-6 col-md-3">
+      <div class="card card-stat p-3 bg-white border-start border-warning border-4">
+        <small class="text-muted fw-bold" style="font-size:11px;">PENDING / HOLD</small>
+        <h3 class="fw-bold text-warning mb-0" id="adminPendingUsers">0</h3>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card card-stat p-3 bg-white border-start border-danger border-4">
+        <small class="text-muted fw-bold" style="font-size:11px;">RESET PASS REQUESTS</small>
+        <h3 class="fw-bold text-danger mb-0" id="adminForgotCount">0</h3>
+      </div>
     </div>
   </div>
 
-  <!-- REGISTERED USERS MANAGEMENT TABLE -->
+  <!-- SEARCH & FILTER BAR -->
+  <div class="card card-stat p-3 bg-white mb-3">
+    <div class="row g-2 align-items-center">
+      <div class="col-12 col-md-6">
+        <input type="text" id="adminUserSearch" class="form-control" placeholder="Search User by Name or Phone..." oninput="filterAdminUsers()">
+      </div>
+      <div class="col-6 col-md-3">
+        <select id="adminStatusFilter" class="form-select" onchange="filterAdminUsers()">
+          <option value="ALL">All Statuses</option>
+          <option value="ACTIVE">Active Users</option>
+          <option value="HOLD">Blocked / Hold</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-3 text-end">
+        <button class="btn btn-outline-primary w-100 fw-bold" onclick="loadAdminUsersList()"><i class="fa-solid fa-rotate me-1"></i> Refresh Data</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- USER MANAGEMENT TABLE -->
   <div class="card card-stat p-3 bg-white mb-4">
-    <h5 class="fw-bold mb-3">User Access & Subscription Approvals</h5>
+    <h5 class="fw-bold mb-3"><i class="fa-solid fa-users-gear me-2"></i>User Subscriptions, Expiry & Access Control</h5>
     <div class="table-responsive">
-      <table class="table table-striped table-bordered text-center align-middle" style="font-size:14px;">
+      <table class="table table-striped table-bordered text-center align-middle" style="font-size:13px;">
         <thead class="table-dark">
           <tr>
             <th>Business Name</th>
             <th>Phone ID</th>
-            <th>Current Plan</th>
-            <th>Expiry Date</th>
-            <th>Access Status</th>
-            <th>Action / Assign Plan</th>
+            <th>Password</th>
+            <th>Plan & Expiry</th>
+            <th>Custom Expiry Date</th>
+            <th>Private Note</th>
+            <th>Status</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="adminUsersTableBody">
-          <tr><td colspan="6" class="text-muted">Loading users...</td></tr>
+          <tr><td colspan="8" class="text-muted">Loading users...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- ADMIN PASSWORD UPDATE SECTION -->
-  <div class="card card-stat p-3 bg-white" style="max-width:400px;">
-    <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-key me-2"></i>Update Admin Password</h6>
-    <div class="input-group input-group-sm mb-2">
-      <input type="password" id="newAdminPass" class="form-control" placeholder="New Admin Password">
-      <button class="btn btn-danger fw-bold" onclick="updateAdminPass()">Change Password</button>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <div class="card card-stat p-3 bg-white">
+        <h6 class="fw-bold text-dark mb-2"><i class="fa-solid fa-key me-2"></i>Update Admin Password</h6>
+        <div class="input-group input-group-sm mb-2">
+          <input type="password" id="newAdminPass" class="form-control" placeholder="New Admin Password (Min 6 chars)" minlength="6">
+          <button class="btn btn-danger fw-bold" onclick="updateAdminPass()">Change Password</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- MAIN POS SYSTEM (FOR NORMAL USERS) -->
+<!-- EDIT USER ACCOUNT MODAL FOR ADMIN -->
+<div class="modal fade" id="adminEditUserModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white p-2 px-3">
+        <h6 class="modal-title fw-bold"><i class="fa-solid fa-user-pen me-1"></i> Edit User Account & Custom Expiry</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form onsubmit="submitEditUser(event)">
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Phone ID (Cannot be changed)</label>
+            <input type="text" id="editUserPhone" class="form-control form-control-sm bg-light" readonly>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Business Name</label>
+            <input type="text" id="editUserBizName" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Password (Min 6 Digits)</label>
+            <input type="text" id="editUserPass" class="form-control form-control-sm" required minlength="6">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Custom Expiry Date (Leave empty for Lifetime)</label>
+            <input type="date" id="editUserExpiry" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-bold">Account Status</label>
+            <select id="editUserStatus" class="form-select form-select-sm fw-bold">
+              <option value="true">Active Access</option>
+              <option value="false">Hold / Blocked</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Admin Private Note</label>
+            <input type="text" id="editUserNote" class="form-control form-control-sm" placeholder="Payment or internal details">
+          </div>
+          <button type="submit" class="btn btn-primary w-100 fw-bold">Save User Changes</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CLIENT POS APP -->
 <div id="mainApp" class="container-fluid d-none p-0">
   <nav class="navbar navbar-dark mobile-header d-md-none sticky-top">
     <div class="container-fluid">
@@ -253,15 +363,50 @@
           <h4 class="fw-bold mb-3">Party Ledger Search</h4>
           <div class="card card-stat p-3 bg-white mb-3">
             <div class="row g-2 align-items-center">
-              <div class="col-12 col-md-6"><input type="text" id="partySearchInput" class="form-control" placeholder="Search Name..." oninput="searchPartyLedger()"></div>
-              <div class="col-8 col-md-3">
-                <select id="partyRoleFilter" class="form-select" onchange="searchPartyLedger()">
+              <div class="col-12 col-md-6">
+                <input type="text" id="partySearchInput" class="form-control" placeholder="Type Exact Name (e.g. Al Nafay Cotton)..." list="ledgerSuggestions" oninput="searchPartyLedger()">
+                <datalist id="ledgerSuggestions"></datalist>
+              </div>
+              <div class="col-6 col-md-3">
+                <select id="partyRoleFilter" class="form-select" onchange="updateLedgerSuggestions(); searchPartyLedger();">
                   <option value="ALL">All Parties</option>
                   <option value="Customer">Customers</option>
                   <option value="Supplier">Suppliers</option>
                 </select>
               </div>
-              <div class="col-4 col-md-3 text-end"><button class="btn btn-outline-danger w-100 fw-bold" onclick="generatePartyLedgerPDF()"><i class="fa-solid fa-file-pdf me-1"></i> Download PDF</button></div>
+              <div class="col-6 col-md-3 text-end">
+                <button class="btn btn-outline-danger w-100 fw-bold" onclick="generatePartyLedgerPDF()"><i class="fa-solid fa-file-pdf me-1"></i> Download PDF</button>
+              </div>
+              <div class="col-5 col-md-4 mt-2">
+                <label class="form-label small fw-bold text-secondary mb-0">From Date</label>
+                <input type="date" id="ledgerFromDate" class="form-control form-control-sm" onchange="searchPartyLedger()">
+              </div>
+              <div class="col-5 col-md-4 mt-2">
+                <label class="form-label small fw-bold text-secondary mb-0">To Date</label>
+                <input type="date" id="ledgerToDate" class="form-control form-control-sm" onchange="searchPartyLedger()">
+              </div>
+              <div class="col-2 col-md-4 mt-2 d-flex align-items-end">
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100 fw-bold" onclick="clearLedgerDateFilter()">Clear</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card card-stat p-2 p-md-3 bg-white mb-3">
+            <h6 class="fw-bold text-secondary mb-2"><i class="fa-solid fa-list me-1"></i> All Parties Quick PDF Download List</h6>
+            <div class="table-responsive" style="max-height: 220px; overflow-y: auto;">
+              <table class="table table-sm table-bordered text-center align-middle" style="font-size: 13px;">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Party Name</th>
+                    <th>Role</th>
+                    <th>Phone</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="allPartiesLedgerListBody">
+                  <tr><td colspan="4" class="text-muted">No parties found.</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -273,36 +418,101 @@
             <div class="table-responsive">
               <table class="table table-hover table-bordered text-center align-middle" style="font-size: 13px;">
                 <thead class="table-dark"><tr><th>Date</th><th>Bill #</th><th>Type</th><th>Amount</th><th>Bill Pic</th><th>Action</th></tr></thead>
-                <tbody id="partyLedgerBody"><tr><td colspan="6" class="text-muted">Search customer/supplier above.</td></tr></tbody>
+                <tbody id="partyLedgerBody"><tr><td colspan="6" class="text-muted">Search or select customer/supplier above.</td></tr></tbody>
               </table>
             </div>
           </div>
         </div>
 
         <div class="tab-pane fade" id="tabDues">
-          <h4 class="fw-bold mb-3">Market Dues Summary</h4>
-          <div class="row g-3">
-            <div class="col-12 col-md-6">
-              <div class="card card-stat p-3 bg-white">
-                <h6 class="fw-bold text-danger mb-2">Customer Dues List</h6>
-                <div class="table-responsive"><table class="table table-striped table-bordered text-center" style="font-size: 13px;"><thead class="table-dark"><tr><th>Customer</th><th>Net Due</th></tr></thead><tbody id="customerDuesBody"></tbody></table></div>
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+            <h4 class="fw-bold mb-0">Market Combined Dues Summary</h4>
+            <div class="d-flex align-items-center gap-2">
+              <label class="fw-bold small mb-0 text-nowrap"><i class="fa-solid fa-filter me-1"></i> View Filter:</label>
+              <select id="duesFilterSelect" class="form-select form-select-sm fw-bold border-primary" style="min-width: 160px;" onchange="renderDuesLists()">
+                <option value="ALL">Show All Parties</option>
+                <option value="Customer">Customers Only</option>
+                <option value="Supplier">Suppliers Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-12 col-md-4" id="dueCardCustBox">
+              <div class="card card-stat p-3 bg-white border-start border-danger border-4">
+                <small class="text-muted fw-bold" style="font-size: 11px;">TOTAL CUSTOMER DUES (LENE HAIN)</small>
+                <h4 class="fw-bold text-danger mb-0" id="duesGrandCust">Rs. 0</h4>
               </div>
             </div>
-            <div class="col-12 col-md-6">
+            <div class="col-12 col-md-4" id="dueCardSuppBox">
+              <div class="card card-stat p-3 bg-white border-start border-warning border-4">
+                <small class="text-muted fw-bold" style="font-size: 11px;">TOTAL SUPPLIER PAYABLES (DENE HAIN)</small>
+                <h4 class="fw-bold text-warning mb-0" id="duesGrandSupp">Rs. 0</h4>
+              </div>
+            </div>
+            <div class="col-12 col-md-4" id="dueCardNetBox">
+              <div class="card card-stat p-3 bg-white border-start border-primary border-4">
+                <small class="text-muted fw-bold" style="font-size: 11px;">NET OVERALL MARKET BALANCE</small>
+                <h4 class="fw-bold text-primary mb-0" id="duesGrandNet">Rs. 0</h4>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6" id="duesCustColumn">
               <div class="card card-stat p-3 bg-white">
-                <h6 class="fw-bold text-warning mb-2">Supplier Dues List</h6>
-                <div class="table-responsive"><table class="table table-striped table-bordered text-center" style="font-size: 13px;"><thead class="table-dark"><tr><th>Supplier</th><th>Net Payable</th></tr></thead><tbody id="supplierDuesBody"></tbody></table></div>
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="fw-bold text-danger mb-0"><i class="fa-solid fa-users me-1"></i> Customer Dues List</h6>
+                  <span class="badge bg-danger" id="custCountBadge">0 Parties</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered text-center align-middle" style="font-size: 13px;">
+                    <thead class="table-dark"><tr><th>Customer Name</th><th>Net Due</th><th>Action</th></tr></thead>
+                    <tbody id="customerDuesBody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6" id="duesSuppColumn">
+              <div class="card card-stat p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="fw-bold text-warning mb-0"><i class="fa-solid fa-truck me-1"></i> Supplier Payables List</h6>
+                  <span class="badge bg-warning text-dark" id="suppCountBadge">0 Parties</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-striped table-bordered text-center align-middle" style="font-size: 13px;">
+                    <thead class="table-dark"><tr><th>Supplier Name</th><th>Net Payable</th><th>Action</th></tr></thead>
+                    <tbody id="supplierDuesBody"></tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
         <div class="tab-pane fade" id="tabReports">
-          <h4 class="fw-bold mb-3">Reports & Export</h4>
-          <div class="row g-2">
-            <div class="col-6 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-excel text-success fa-2x mb-2"></i><button onclick="exportToExcel()" class="btn btn-sm btn-success fw-bold w-100">Excel Export</button></div></div>
-            <div class="col-6 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-pdf text-danger fa-2x mb-2"></i><button onclick="downloadAllDuesPDF('Customer')" class="btn btn-sm btn-danger fw-bold w-100">Customer Dues PDF</button></div></div>
-            <div class="col-6 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-pdf text-warning fa-2x mb-2"></i><button onclick="downloadAllDuesPDF('Supplier')" class="btn btn-sm btn-warning fw-bold w-100 text-dark">Supplier Dues PDF</button></div></div>
+          <h4 class="fw-bold mb-3">Reports & Data Backup</h4>
+          <div class="row g-3">
+            <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-excel text-success fa-2x mb-2"></i><button onclick="exportToExcel()" class="btn btn-sm btn-success fw-bold w-100">Excel Export</button></div></div>
+            <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-pdf text-danger fa-2x mb-2"></i><button onclick="downloadAllDuesPDF('Customer')" class="btn btn-sm btn-danger fw-bold w-100">Customer Dues PDF</button></div></div>
+            <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-pdf text-warning fa-2x mb-2"></i><button onclick="downloadAllDuesPDF('Supplier')" class="btn btn-sm btn-warning fw-bold w-100 text-dark">Supplier Dues PDF</button></div></div>
+            
+            <div class="col-12 col-md-6">
+              <div class="card card-stat p-3 bg-white text-center border border-primary">
+                <i class="fa-solid fa-cloud-arrow-down text-primary fa-2x mb-2"></i>
+                <h6 class="fw-bold">Download Complete Backup</h6>
+                <button onclick="downloadSystemBackup()" class="btn btn-sm btn-primary fw-bold w-100 mt-2"><i class="fa-solid fa-download me-1"></i> Download Backup File</button>
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="card card-stat p-3 bg-white text-center border border-success">
+                <i class="fa-solid fa-cloud-arrow-up text-success fa-2x mb-2"></i>
+                <h6 class="fw-bold">Restore Backup File</h6>
+                <input type="file" id="restoreFile" class="form-control form-control-sm mt-2" accept=".json" onchange="restoreSystemBackup(event)">
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -310,12 +520,12 @@
   </div>
 </div>
 
-<!-- MULTI-ITEM ENTRY MODAL -->
+<!-- ENTRY MODAL & OTHER DIALOGS -->
 <div class="modal fade" id="entryModal" tabindex="-1">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header bg-primary text-white p-2 px-3">
-        <h6 class="modal-title fw-bold"><i class="fa-solid fa-receipt me-2"></i> Single Bill Multi-Transaction Entry</h6>
+        <h6 class="modal-title fw-bold"><i class="fa-solid fa-receipt me-2"></i> Single Bill Multi-Transaction & Split Payment Entry</h6>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
@@ -330,8 +540,9 @@
             </div>
             <div class="col-6 col-md-4">
               <label class="form-label small fw-bold">Name</label>
-              <input type="text" id="entryName" class="form-control form-control-sm" placeholder="Name" list="partySuggestions" required autocomplete="off">
+              <input type="text" id="entryName" class="form-control form-control-sm" placeholder="Name" list="partySuggestions" required autocomplete="off" oninput="checkPartyLiveBalance()">
               <datalist id="partySuggestions"></datalist>
+              <small id="liveBalanceWarning" class="fw-bold d-block mt-1" style="font-size: 11px;"></small>
             </div>
             <div class="col-6 col-md-4">
               <label class="form-label small fw-bold">Bill No.</label>
@@ -346,20 +557,18 @@
 
           <div id="multiRowsContainer"></div>
 
+          <div id="splitPaymentSection" class="border rounded p-2 bg-light mb-2 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label class="form-label small fw-bold text-primary mb-0"><i class="fa-solid fa-wallet me-1"></i> Split Payment Methods (Multi-Mode)</label>
+              <button type="button" class="btn btn-sm btn-outline-primary py-0" style="font-size:11px;" onclick="addSplitRow()"><i class="fa-solid fa-plus me-1"></i> Add Method</button>
+            </div>
+            <div id="splitRowsContainer"></div>
+          </div>
+
           <div class="row g-2 mb-2 mt-2">
-            <div class="col-6">
+            <div class="col-12">
               <label class="form-label small fw-bold">Date</label>
               <input type="date" id="entryDate" class="form-control form-control-sm" required>
-            </div>
-            <div class="col-6" id="paymentMethodWrapper">
-              <label class="form-label small fw-bold">Payment Method</label>
-              <select id="entryMethod" class="form-select form-select-sm">
-                <option value="Cash">Cash</option>
-                <option value="Online / Bank">Online / Bank</option>
-                <option value="Cheque">Cheque</option>
-                <option value="JazzCash">JazzCash</option>
-                <option value="EasyPaisa">EasyPaisa</option>
-              </select>
             </div>
           </div>
 
@@ -381,7 +590,6 @@
   </div>
 </div>
 
-<!-- ADD PARTY MODAL -->
 <div class="modal fade" id="addPartyModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -402,7 +610,7 @@
           </div>
           
           <div class="p-2 border rounded bg-light mb-3">
-            <label class="form-label small fw-bold text-primary"><i class="fa-solid fa-book-open me-1"></i> Purana Khaya / Opening Balance</label>
+            <label class="form-label small fw-bold text-primary"><i class="fa-solid fa-book-open me-1"></i> Purana Khata / Opening Balance</label>
             <div class="row g-2 mb-2">
               <div class="col-7">
                 <input type="number" id="partyOpeningBal" class="form-control form-control-sm" placeholder="Amount (Rs. 0)">
@@ -416,7 +624,7 @@
             </div>
             
             <div>
-              <label class="form-label small fw-bold text-secondary mb-1"><i class="fa-solid fa-camera me-1"></i> Purana Khata Proof / Register Pic (Optional)</label>
+              <label class="form-label small fw-bold text-secondary mb-1"><i class="fa-solid fa-camera me-1"></i> Register Pic (Optional)</label>
               <input type="file" id="partyOpeningImg" class="form-control form-control-sm" accept="image/*" onchange="previewBillImage(event, 'openingImgPreview')">
               <img id="openingImgPreview" class="img-preview d-none" alt="Opening Balance Preview">
             </div>
@@ -429,7 +637,6 @@
   </div>
 </div>
 
-<!-- VIEW BILL PICTURE MODAL -->
 <div class="modal fade" id="viewImgModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content text-center p-2">
@@ -453,6 +660,7 @@
   let currentBillBase64 = "";
   let currentOpeningBase64 = "";
   let mainChart = null, methodChart = null;
+  let cachedAdminUsersList = [];
 
   document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("entryDate").value = new Date().toISOString().split('T')[0];
@@ -484,13 +692,18 @@
     }
   }
 
-  function toggleAuth(isRegister) {
-    if(isRegister) {
-      document.getElementById("loginForm").classList.add("d-none");
+  function toggleAuth(mode) {
+    document.getElementById("loginForm").classList.add("d-none");
+    document.getElementById("registerForm").classList.add("d-none");
+    document.getElementById("forgotForm").classList.add("d-none");
+
+    if(mode === 'register') {
       document.getElementById("registerForm").classList.remove("d-none");
       document.getElementById("authTitle").innerText = "Create Business Account";
+    } else if(mode === 'forgot') {
+      document.getElementById("forgotForm").classList.remove("d-none");
+      document.getElementById("authTitle").innerText = "Forgot Password Assistance";
     } else {
-      document.getElementById("registerForm").classList.add("d-none");
       document.getElementById("loginForm").classList.remove("d-none");
       document.getElementById("authTitle").innerText = "Sign in with Unique Phone Number";
     }
@@ -505,6 +718,12 @@
     let pass = document.getElementById("regPass").value.trim();
     let bizName = document.getElementById("regBizName").value.trim() || "My Shop";
 
+    if (pass.length < 6) {
+      alert("Password kam az kam 6 digits/characters ka hona zaroori hai!");
+      btn.disabled = false;
+      return;
+    }
+
     try {
       let res = await fetch('/api/register', {
         method: 'POST',
@@ -517,12 +736,33 @@
         btn.disabled = false;
         return;
       }
-      alert("Account register ho gaya hai! Super Admin permission ke baad login hoga.");
-      toggleAuth(false);
+      toggleAuth('login');
+      new bootstrap.Modal(document.getElementById('regSuccessModal')).show();
     } catch(err) {
       alert("Server Connection Error!");
     }
     btn.disabled = false;
+  }
+
+  async function handleForgotRequest(e) {
+    e.preventDefault();
+    let phone = document.getElementById("forgotPhone").value.trim();
+    try {
+      let res = await fetch('/api/forgot-password-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      let data = await res.json();
+      if(data.success) {
+        alert("Aapki request submit ho gayi hai! System owner/admin se 03243981059 par raabta karein password reset karwane ke liye.");
+        toggleAuth('login');
+      } else {
+        alert(data.error || "Phone number not found!");
+      }
+    } catch(err) {
+      alert("Error sending request!");
+    }
   }
 
   async function handleLogin(e) {
@@ -533,6 +773,12 @@
     let phoneInput = document.getElementById("loginPhone").value.trim();
     let passInput = document.getElementById("loginPass").value.trim();
     let remember = document.getElementById("rememberMe").checked;
+
+    if (passInput.length < 6) {
+      alert("Password kam az kam 6 characters ka hota hai!");
+      btn.disabled = false;
+      return;
+    }
 
     try {
       let res = await fetch('/api/login', {
@@ -582,58 +828,162 @@
       let res = await fetch('/api/admin/get-users');
       let data = await res.json();
       if (data.success) {
-        let users = data.users;
-        document.getElementById("adminTotalUsers").innerText = users.length;
-        let activeCount = users.filter(u => u.isApproved).length;
-        document.getElementById("adminActiveUsers").innerText = activeCount;
-
-        let tbody = document.getElementById("adminUsersTableBody");
-        let html = "";
-
-        users.forEach(u => {
-          let statusBadge = u.isApproved ? `<span class="badge bg-success">Active Access</span>` : `<span class="badge bg-danger">Access Blocked</span>`;
-          let exp = u.expiryDate ? u.expiryDate : "Lifetime / Pending";
-
-          html += `
-            <tr>
-              <td><strong>${u.bizName}</strong></td>
-              <td>${u.phone}</td>
-              <td><span class="badge bg-info text-dark">${u.plan || 'No Plan'}</span></td>
-              <td class="fw-bold">${exp}</td>
-              <td>${statusBadge}</td>
-              <td>
-                <select class="form-select form-select-sm d-inline-block w-auto me-1" id="planSelect_${u.phone}">
-                  <option value="7_7 Days Trial">7 Days Trial</option>
-                  <option value="30_1 Month ($30)">1 Month ($30)</option>
-                  <option value="90_3 Months ($70)">3 Months ($70)</option>
-                  <option value="180_6 Months ($120)">6 Months ($120)</option>
-                  <option value="365_1 Year ($200)">1 Year ($200)</option>
-                  <option value="3650_10 Years Lifetime">10 Years Lifetime</option>
-                </select>
-                <button class="btn btn-sm btn-success fw-bold me-1" onclick="approveUserPlan('${u.phone}', true)">Approve</button>
-                <button class="btn btn-sm btn-danger fw-bold" onclick="approveUserPlan('${u.phone}', false)">Block</button>
-              </td>
-            </tr>
-          `;
-        });
-
-        tbody.innerHTML = html || `<tr><td colspan="6" class="text-muted">No users registered yet.</td></tr>`;
+        cachedAdminUsersList = data.users;
+        filterAdminUsers();
       }
     } catch(e) {}
   }
 
+  function filterAdminUsers() {
+    let query = document.getElementById("adminUserSearch").value.trim().toLowerCase();
+    let filterStatus = document.getElementById("adminStatusFilter").value;
+
+    let users = cachedAdminUsersList.filter(u => {
+      let matchQuery = u.bizName.toLowerCase().includes(query) || u.phone.includes(query);
+      let matchStatus = true;
+      if (filterStatus === "ACTIVE") matchStatus = u.isApproved === true;
+      if (filterStatus === "HOLD") matchStatus = u.isApproved === false;
+      return matchQuery && matchStatus;
+    });
+
+    document.getElementById("adminTotalUsers").innerText = cachedAdminUsersList.length;
+    document.getElementById("adminActiveUsers").innerText = cachedAdminUsersList.filter(u => u.isApproved).length;
+    document.getElementById("adminPendingUsers").innerText = cachedAdminUsersList.filter(u => !u.isApproved).length;
+    document.getElementById("adminForgotCount").innerText = cachedAdminUsersList.filter(u => u.forgotRequested).length;
+
+    let tbody = document.getElementById("adminUsersTableBody");
+    let html = "";
+
+    users.forEach(u => {
+      let statusBadge = u.isApproved ? `<span class="badge bg-success">Active Access</span>` : `<span class="badge bg-danger">Hold / Blocked</span>`;
+      let forgotBadge = u.forgotRequested ? `<br><span class="badge bg-warning text-dark mt-1"><i class="fa-solid fa-key me-1"></i> Reset Requested</span>` : '';
+      let exp = u.expiryDate ? u.expiryDate : "Lifetime / Pending";
+
+      html += `
+        <tr>
+          <td><strong>${u.bizName}</strong>${forgotBadge}</td>
+          <td class="fw-bold">${u.phone}</td>
+          <td><span class="badge bg-dark">${u.pass || '***'}</span></td>
+          <td>
+            <span class="badge bg-info text-dark mb-1">${u.plan || 'No Plan'}</span><br>
+            <small class="fw-bold text-secondary">${exp}</small>
+          </td>
+          <td>
+            <input type="date" class="form-control form-control-sm" id="customExpDate_${u.phone}" value="${u.expiryDate ? u.expiryDate : ''}">
+          </td>
+          <td>
+            <input type="text" class="form-control form-control-sm" id="adminNote_${u.phone}" placeholder="Add Note" value="${u.adminNote || ''}">
+          </td>
+          <td>${statusBadge}</td>
+          <td>
+            <div class="mb-1">
+              <select class="form-select form-select-sm d-inline-block w-auto" id="planSelect_${u.phone}">
+                <option value="CUSTOM_CUSTOM DATE">Use Calendar Date</option>
+                <option value="7_7 Days Trial">7 Days Trial</option>
+                <option value="30_1 Month">1 Month</option>
+                <option value="90_3 Months">3 Months</option>
+                <option value="365_1 Year">1 Year</option>
+                <option value="0_Lifetime">Lifetime</option>
+              </select>
+            </div>
+            <div class="d-flex justify-content-center gap-1 flex-wrap">
+              <button class="btn btn-sm btn-success fw-bold py-1" title="Approve / Update" onclick="approveUserPlan('${u.phone}', true)"><i class="fa-solid fa-check"></i></button>
+              <button class="btn btn-sm btn-warning fw-bold py-1 text-dark" title="Hold / Pause" onclick="approveUserPlan('${u.phone}', false)"><i class="fa-solid fa-pause"></i></button>
+              <button class="btn btn-sm btn-primary fw-bold py-1" title="Edit User" onclick="openEditUserModal('${u.phone}')"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button class="btn btn-sm btn-danger fw-bold py-1" title="Delete Account" onclick="deleteUserAccount('${u.phone}', '${u.bizName.replace(/'/g, "\\'")}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html || `<tr><td colspan="8" class="text-muted">No users found.</td></tr>`;
+  }
+
+  function openEditUserModal(phone) {
+    let u = cachedAdminUsersList.find(user => user.phone === phone);
+    if (!u) return;
+
+    document.getElementById("editUserPhone").value = u.phone;
+    document.getElementById("editUserBizName").value = u.bizName || "";
+    document.getElementById("editUserPass").value = u.pass || "";
+    document.getElementById("editUserExpiry").value = u.expiryDate || "";
+    document.getElementById("editUserStatus").value = u.isApproved ? "true" : "false";
+    document.getElementById("editUserNote").value = u.adminNote || "";
+
+    new bootstrap.Modal(document.getElementById("adminEditUserModal")).show();
+  }
+
+  async function submitEditUser(e) {
+    e.preventDefault();
+    let targetPhone = document.getElementById("editUserPhone").value;
+    let bizName = document.getElementById("editUserBizName").value.trim();
+    let pass = document.getElementById("editUserPass").value.trim();
+    let expiryDate = document.getElementById("editUserExpiry").value;
+    let isApproved = document.getElementById("editUserStatus").value === "true";
+    let adminNote = document.getElementById("editUserNote").value.trim();
+
+    if (pass.length < 6) {
+      return alert("Password kam az kam 6 digits/characters ka hona zaroori hai!");
+    }
+
+    try {
+      let res = await fetch('/api/admin/edit-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPhone, bizName, pass, expiryDate, isApproved, adminNote })
+      });
+      let data = await res.json();
+      if (data.success) {
+        alert("User account details successfully updated!");
+        bootstrap.Modal.getInstance(document.getElementById("adminEditUserModal")).hide();
+        loadAdminUsersList();
+      } else {
+        alert(data.error || "Update failed!");
+      }
+    } catch(err) {
+      alert("Server connection error!");
+    }
+  }
+
+  async function deleteUserAccount(phone, bizName) {
+    if (!confirm(`Kya aap waqai "${bizName}" (${phone}) ka poora account aur iska sara data permanently delete karna chahte hain? Yeh wapis nahi aayega!`)) {
+      return;
+    }
+
+    try {
+      let res = await fetch('/api/admin/delete-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetPhone: phone })
+      });
+      let data = await res.json();
+      if (data.success) {
+        alert("User account permanently delete kar diya gaya hai!");
+        loadAdminUsersList();
+      } else {
+        alert(data.error || "Delete failed!");
+      }
+    } catch(err) {
+      alert("Server error while deleting user!");
+    }
+  }
+
   async function approveUserPlan(phone, isApproved) {
     let sel = document.getElementById(`planSelect_${phone}`);
-    let val = sel ? sel.value : "30_1 Month ($30)";
+    let val = sel ? sel.value : "CUSTOM_CUSTOM DATE";
+    let customDate = document.getElementById(`customExpDate_${phone}`).value;
+    let adminNote = document.getElementById(`adminNote_${phone}`).value;
+
     let parts = val.split('_');
-    let days = Number(parts[0]);
+    let days = parts[0] === "CUSTOM" ? -1 : Number(parts[0]);
     let planName = parts[1];
 
     try {
       let res = await fetch('/api/admin/update-access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ targetPhone: phone, isApproved, days, planName })
+        body: JSON.stringify({ targetPhone: phone, isApproved, days, planName, customDate: parts[0] === "CUSTOM" ? customDate : "", adminNote })
       });
       let data = await res.json();
       if (data.success) {
@@ -645,7 +995,7 @@
 
   async function updateAdminPass() {
     let pass = document.getElementById("newAdminPass").value.trim();
-    if (!pass) return alert("Enter new password!");
+    if (!pass || pass.length < 6) return alert("Admin Password minimum 6 digits/characters ka hona zaroori hai!");
 
     try {
       let res = await fetch('/api/admin/update-password', {
@@ -673,6 +1023,8 @@
 
     refreshDashboard();
     renderPartiesTables();
+    updateLedgerSuggestions();
+    renderAllPartiesLedgerList();
   }
 
   async function saveToServer() {
@@ -694,6 +1046,54 @@
     document.getElementById("mainApp").classList.add("d-none");
     document.getElementById("superAdminApp").classList.add("d-none");
     document.getElementById("authScreen").classList.remove("d-none");
+  }
+
+  function downloadSystemBackup() {
+    let backupData = {
+      bizName: currentUser.bizName,
+      phone: currentUser.phone,
+      parties: userParties,
+      transactions: userTransactions,
+      backupDate: new Date().toISOString()
+    };
+    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+    let dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    dlAnchor.setAttribute("download", `${currentUser.bizName.replace(/\s+/g, '_')}_Backup_${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    dlAnchor.remove();
+  }
+
+  async function restoreSystemBackup(event) {
+    let file = event.target.files[0];
+    if (!file) return;
+
+    let reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        let imported = JSON.parse(e.target.result);
+        if (!imported.parties || !imported.transactions) {
+          alert("Invalid Backup File format!");
+          return;
+        }
+
+        if (confirm(`Kya aap "${imported.bizName}" ka backup restore karna chahte hain? Isse current data replace ho jayega.`)) {
+          userParties = imported.parties;
+          userTransactions = imported.transactions;
+          await saveToServer();
+          refreshDashboard();
+          renderPartiesTables();
+          updateLedgerSuggestions();
+          renderAllPartiesLedgerList();
+          alert("Backup Successfully Restore Ho Gaya Hai!");
+        }
+      } catch (err) {
+        alert("Backup file read karne mein error aayi!");
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = "";
   }
 
   function previewBillImage(event, targetImgId) {
@@ -718,6 +1118,7 @@
     currentBillBase64 = "";
     document.getElementById("billImgPreview").classList.add("d-none");
     document.getElementById("entryBillImg").value = "";
+    document.getElementById("liveBalanceWarning").innerText = "";
     new bootstrap.Modal(document.getElementById('entryModal')).show();
   }
 
@@ -737,9 +1138,113 @@
     });
   }
 
+  function updateLedgerSuggestions() {
+    let role = document.getElementById("partyRoleFilter").value;
+    let datalist = document.getElementById("ledgerSuggestions");
+    datalist.innerHTML = "";
+
+    let partyList = new Map();
+    userParties.forEach(p => {
+      if (role === "ALL" || p.role === role) {
+        partyList.set(p.name, p.phone || p.role);
+      }
+    });
+    userTransactions.forEach(t => {
+      if (role === "ALL" || t.role === role) {
+        if (!partyList.has(t.name)) partyList.set(t.name, t.role);
+      }
+    });
+
+    partyList.forEach((detail, name) => {
+      let opt = document.createElement("option");
+      opt.value = name;
+      opt.innerText = `${name} (${detail})`;
+      datalist.appendChild(opt);
+    });
+  }
+
+  function renderAllPartiesLedgerList() {
+    let role = document.getElementById("partyRoleFilter").value;
+    let tbody = document.getElementById("allPartiesLedgerListBody");
+    
+    let partyMap = new Map();
+    userParties.forEach(p => {
+      if (role === "ALL" || p.role === role) {
+        partyMap.set(p.name, { role: p.role, phone: p.phone || '-' });
+      }
+    });
+    userTransactions.forEach(t => {
+      if (role === "ALL" || t.role === role) {
+        if (!partyMap.has(t.name)) {
+          partyMap.set(t.name, { role: t.role, phone: '-' });
+        }
+      }
+    });
+
+    let html = "";
+    partyMap.forEach((info, name) => {
+      let safeName = name.replace(/'/g, "\\'");
+      html += `
+        <tr>
+          <td class="fw-bold text-start ps-3">${name}</td>
+          <td><span class="badge bg-secondary">${info.role}</span></td>
+          <td>${info.phone}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary fw-bold me-1" onclick="viewPartyLedger('${safeName}', '${info.role}')">View</button>
+            <button class="btn btn-sm btn-danger fw-bold" onclick="exportSinglePartyPDF('${safeName}')"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html || `<tr><td colspan="4" class="text-muted">No parties found.</td></tr>`;
+  }
+
+  function checkPartyLiveBalance() {
+    let role = document.getElementById("entryRole").value;
+    let typedName = document.getElementById("entryName").value.trim().toLowerCase();
+    let warningEl = document.getElementById("liveBalanceWarning");
+
+    if (!typedName) {
+      warningEl.innerText = "";
+      return;
+    }
+
+    let matchedPartyName = null;
+    let allNames = new Set();
+    userParties.filter(p => p.role === role).forEach(p => allNames.add(p.name));
+    userTransactions.filter(t => t.role === role).forEach(t => allNames.add(t.name));
+
+    for (let name of allNames) {
+      if (name.toLowerCase().replace(/\s+/g, '') === typedName.replace(/\s+/g, '')) {
+        matchedPartyName = name;
+        break;
+      }
+    }
+
+    if (matchedPartyName) {
+      let total = 0, paid = 0;
+      userTransactions.filter(t => t.role === role && t.name.toLowerCase() === matchedPartyName.toLowerCase()).forEach(t => {
+        if (role === "Customer") {
+          if (t.type === "SALE_CREDIT") total += t.amount;
+          else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") paid += t.amount;
+        } else {
+          if (t.type === "PURCHASE_CREDIT") total += t.amount;
+          else if (t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") paid += t.amount;
+        }
+      });
+      let net = total - paid;
+      warningEl.innerHTML = `<span class="text-danger">⚠️ Existing Balance (${matchedPartyName}): Rs. ${net.toLocaleString()}</span>`;
+    } else {
+      warningEl.innerHTML = `<span class="text-success">✨ New Party Name</span>`;
+    }
+  }
+
   function resetMultiRows() {
     document.getElementById("multiRowsContainer").innerHTML = "";
+    document.getElementById("splitRowsContainer").innerHTML = "";
     addMultiRow();
+    checkPaymentVisibility();
   }
 
   function addMultiRow() {
@@ -787,12 +1292,40 @@
       }
     });
 
-    let pmWrapper = document.getElementById("paymentMethodWrapper");
+    let splitSection = document.getElementById("splitPaymentSection");
     if (hasCashOrPayment) {
-      pmWrapper.classList.remove("d-none");
+      splitSection.classList.remove("d-none");
+      if (document.querySelectorAll(".split-row").length === 0) {
+        addSplitRow();
+      }
     } else {
-      pmWrapper.classList.add("d-none");
+      splitSection.classList.add("d-none");
+      document.getElementById("splitRowsContainer").innerHTML = "";
     }
+  }
+
+  function addSplitRow() {
+    let container = document.getElementById("splitRowsContainer");
+    let rowDiv = document.createElement("div");
+    rowDiv.className = "row g-2 align-items-center mb-1 split-row";
+    rowDiv.innerHTML = `
+      <div class="col-6">
+        <select class="form-select form-select-sm split-method">
+          <option value="Cash">Cash</option>
+          <option value="Online / Bank">Online / Bank</option>
+          <option value="Cheque">Cheque</option>
+          <option value="JazzCash">JazzCash</option>
+          <option value="EasyPaisa">EasyPaisa</option>
+        </select>
+      </div>
+      <div class="col-4">
+        <input type="number" class="form-control form-control-sm split-amount fw-bold text-primary" placeholder="Amount" required>
+      </div>
+      <div class="col-2 text-end">
+        <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="this.closest('.split-row').remove()"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    `;
+    container.appendChild(rowDiv);
   }
 
   function openAddPartyModal(role) {
@@ -818,10 +1351,13 @@
 
       if (openingBal > 0) {
         let txType = "";
+        let txMethod = "Credit";
         if (role === "Customer") {
           txType = openingType === "RECEIVABLE" ? "SALE_CREDIT" : "PAYMENT_REC";
+          if (openingType !== "RECEIVABLE") txMethod = "Cash";
         } else {
           txType = openingType === "PAYABLE" ? "PURCHASE_CREDIT" : "PAYMENT_PAID";
+          if (openingType !== "PAYABLE") txMethod = "Cash";
         }
 
         userTransactions.push({
@@ -831,9 +1367,9 @@
           billNo: "OPENING-BAL",
           type: txType,
           amount: openingBal,
-          method: "Cash",
+          method: txMethod,
           date: new Date().toISOString().split('T')[0],
-          notes: "Purana Bakaya / Opening Balance Entry",
+          notes: "Purana Khata / Opening Balance Entry",
           img: currentOpeningBase64
         });
       }
@@ -845,6 +1381,8 @@
     document.getElementById("addPartyForm").reset();
     refreshDashboard();
     renderPartiesTables();
+    updateLedgerSuggestions();
+    renderAllPartiesLedgerList();
   }
 
   async function deleteParty(name, role) {
@@ -854,6 +1392,8 @@
       await saveToServer();
       refreshDashboard();
       renderPartiesTables();
+      updateLedgerSuggestions();
+      renderAllPartiesLedgerList();
       searchPartyLedger();
     }
   }
@@ -863,11 +1403,10 @@
     let role = document.getElementById("entryRole").value;
     let rawName = document.getElementById("entryName").value.trim().replace(/\s+/g, ' ');
     
-    let existingParty = userParties.find(p => p.name.toLowerCase() === rawName.toLowerCase() && p.role === role);
-    let name = existingParty ? existingParty.name : rawName;
+    let matchedParty = userParties.find(p => p.role === role && p.name.toLowerCase().replace(/\s+/g, '') === rawName.toLowerCase().replace(/\s+/g, ''));
+    let name = matchedParty ? matchedParty.name : rawName;
 
     let billNo = document.getElementById("entryBillNo").value.trim();
-    let method = document.getElementById("entryMethod").value;
     let date = document.getElementById("entryDate").value;
     let notes = document.getElementById("entryNotes").value.trim();
 
@@ -879,13 +1418,62 @@
       let amount = parseFloat(rowAmounts[index].value) || 0;
 
       if (amount > 0) {
-        let tx = { id: Date.now() + Math.random(), role, name, billNo, type, amount, method, date, notes, img: currentBillBase64 };
-        userTransactions.push(tx);
+        let isCashOrPay = (type === "SALE_CASH" || type === "PURCHASE_CASH" || type === "PAYMENT_REC" || type === "PAYMENT_PAID");
+        
+        if (isCashOrPay) {
+          let splitRows = document.querySelectorAll(".split-row");
+          if (splitRows.length > 0) {
+            splitRows.forEach(sr => {
+              let sMethod = sr.querySelector(".split-method").value;
+              let sAmount = parseFloat(sr.querySelector(".split-amount").value) || 0;
+              if (sAmount > 0) {
+                userTransactions.push({
+                  id: Date.now() + Math.random(),
+                  role,
+                  name,
+                  billNo,
+                  type,
+                  amount: sAmount,
+                  method: sMethod,
+                  date,
+                  notes: notes + ` (Split: ${sMethod})`,
+                  img: currentBillBase64
+                });
+              }
+            });
+          } else {
+            userTransactions.push({
+              id: Date.now() + Math.random(),
+              role,
+              name,
+              billNo,
+              type,
+              amount,
+              method: "Cash",
+              date,
+              notes,
+              img: currentBillBase64
+            });
+          }
+        } else {
+          userTransactions.push({
+            id: Date.now() + Math.random(),
+            role,
+            name,
+            billNo,
+            type,
+            amount,
+            method: "Credit",
+            date,
+            notes,
+            img: currentBillBase64
+          });
+        }
       }
     });
 
     if (!userParties.find(p => p.name.toLowerCase() === name.toLowerCase() && p.role === role)) {
-      userParties.push({ id: Date.now(), role, name: '-' });
+      userParties.push({ id: Date.now(), role, name: name });
     }
 
     await saveToServer();
@@ -896,6 +1484,8 @@
     
     refreshDashboard();
     renderPartiesTables();
+    updateLedgerSuggestions();
+    renderAllPartiesLedgerList();
     searchPartyLedger();
   }
 
@@ -903,24 +1493,41 @@
     let custDue = 0, suppDue = 0, totalSales = 0, totalReturns = 0;
     let methodShare = { Cash: 0, "Online / Bank": 0, Cheque: 0, JazzCash: 0, EasyPaisa: 0 };
 
+    let custMap = {}, suppMap = {};
+    userParties.forEach(p => {
+      if (p.role === "Customer") custMap[p.name] = { total: 0, paid: 0 };
+      if (p.role === "Supplier") suppMap[p.name] = { total: 0, paid: 0 };
+    });
+
     userTransactions.forEach(t => {
       if (t.role === "Customer") {
-        if (t.type === "SALE_CREDIT") custDue += t.amount;
-        else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") custDue -= t.amount;
+        if (!custMap[t.name]) custMap[t.name] = { total: 0, paid: 0 };
+        if (t.type === "SALE_CREDIT") custMap[t.name].total += t.amount;
+        else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") custMap[t.name].paid += t.amount;
         
         if (t.type === "SALE_CREDIT" || t.type === "SALE_CASH") totalSales += t.amount;
         if (t.type === "SALE_RETURN") totalReturns += t.amount;
       } else {
-        if (t.type === "PURCHASE_CREDIT") suppDue += t.amount;
-        else if (t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") suppDue -= t.amount;
+        if (!suppMap[t.name]) suppMap[t.name] = { total: 0, paid: 0 };
+        if (t.type === "PURCHASE_CREDIT") suppMap[t.name].total += t.amount;
+        else if (t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") suppMap[t.name].paid += t.amount;
         
         if (t.type === "PURCHASE_RETURN") totalReturns += t.amount;
       }
 
-      if ((t.type === "SALE_CASH" || t.type === "PURCHASE_CASH" || t.type === "PAYMENT_REC" || t.type === "PAYMENT_PAID") && methodShare[t.method] !== undefined) {
+      if (t.method && t.method !== "Credit" && methodShare[t.method] !== undefined) {
         methodShare[t.method] += t.amount;
       }
     });
+
+    for (let c in custMap) {
+      let net = custMap[c].total - custMap[c].paid;
+      custDue += net;
+    }
+    for (let s in suppMap) {
+      let net = suppMap[s].total - suppMap[s].paid;
+      suppDue += net;
+    }
 
     document.getElementById("dashTotalCustomerDue").innerText = "Rs. " + custDue.toLocaleString();
     document.getElementById("dashTotalSupplierDue").innerText = "Rs. " + suppDue.toLocaleString();
@@ -958,14 +1565,15 @@
 
     for (let c in custMap) {
       let net = custMap[c].total - custMap[c].paid;
+      let safeC = c.replace(/'/g, "\\'");
       custHtml += `
         <tr>
           <td>${c}</td>
           <td>${custMap[c].phone}</td>
           <td class="fw-bold text-danger">Rs. ${net.toLocaleString()}</td>
           <td>
-            <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${c}', 'Customer')">View</button>
-            <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteParty('${c}', 'Customer')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button>
+            <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteParty('${safeC}', 'Customer')"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `;
@@ -973,14 +1581,15 @@
 
     for (let s in suppMap) {
       let net = suppMap[s].total - suppMap[s].paid;
+      let safeS = s.replace(/'/g, "\\'");
       suppHtml += `
         <tr>
           <td>${s}</td>
           <td>${suppMap[s].phone}</td>
           <td class="fw-bold text-warning">Rs. ${net.toLocaleString()}</td>
           <td>
-            <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${s}', 'Supplier')">View</button>
-            <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteParty('${s}', 'Supplier')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button>
+            <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteParty('${safeS}', 'Supplier')"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
       `;
@@ -999,7 +1608,13 @@
   }
 
   function renderDuesLists() {
+    let filterVal = document.getElementById("duesFilterSelect") ? document.getElementById("duesFilterSelect").value : "ALL";
     let custMap = {}, suppMap = {};
+
+    userParties.forEach(p => {
+      if (p.role === "Customer") custMap[p.name] = { total: 0, paid: 0 };
+      if (p.role === "Supplier") suppMap[p.name] = { total: 0, paid: 0 };
+    });
 
     userTransactions.forEach(t => {
       if (t.role === "Customer") {
@@ -1014,22 +1629,90 @@
     });
 
     let custHtml = "", suppHtml = "";
+    let grandCust = 0, grandSupp = 0, custCount = 0, suppCount = 0;
+
     for (let c in custMap) {
       let net = custMap[c].total - custMap[c].paid;
-      custHtml += `<tr><td>${c}</td><td class="fw-bold text-danger">Rs. ${net.toLocaleString()}</td></tr>`;
-    }
-    for (let s in suppMap) {
-      let net = suppMap[s].total - suppMap[s].paid;
-      suppHtml += `<tr><td>${s}</td><td class="fw-bold text-warning">Rs. ${net.toLocaleString()}</td></tr>`;
+      if (net !== 0) {
+        grandCust += net;
+        custCount++;
+        let safeC = c.replace(/'/g, "\\'");
+        custHtml += `
+          <tr>
+            <td class="fw-bold text-start ps-2">${c}</td>
+            <td class="fw-bold text-danger">Rs. ${net.toLocaleString()}</td>
+            <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button></td>
+          </tr>
+        `;
+      }
     }
 
-    document.getElementById("customerDuesBody").innerHTML = custHtml || `<tr><td colspan="2" class="text-muted">No Data</td></tr>`;
-    document.getElementById("supplierDuesBody").innerHTML = suppHtml || `<tr><td colspan="2" class="text-muted">No Data</td></tr>`;
+    for (let s in suppMap) {
+      let net = suppMap[s].total - suppMap[s].paid;
+      if (net !== 0) {
+        grandSupp += net;
+        suppCount++;
+        let safeS = s.replace(/'/g, "\\'");
+        suppHtml += `
+          <tr>
+            <td class="fw-bold text-start ps-2">${s}</td>
+            <td class="fw-bold text-warning">Rs. ${net.toLocaleString()}</td>
+            <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button></td>
+          </tr>
+        `;
+      }
+    }
+
+    let grandNet = grandCust - grandSupp;
+
+    document.getElementById("duesGrandCust").innerText = "Rs. " + grandCust.toLocaleString();
+    document.getElementById("duesGrandSupp").innerText = "Rs. " + grandSupp.toLocaleString();
+    document.getElementById("duesGrandNet").innerText = "Rs. " + grandNet.toLocaleString();
+
+    document.getElementById("custCountBadge").innerText = custCount + " Parties";
+    document.getElementById("suppCountBadge").innerText = suppCount + " Parties";
+
+    document.getElementById("customerDuesBody").innerHTML = custHtml || `<tr><td colspan="3" class="text-muted">No Customer Dues</td></tr>`;
+    document.getElementById("supplierDuesBody").innerHTML = suppHtml || `<tr><td colspan="3" class="text-muted">No Supplier Payables</td></tr>`;
+
+    let custCol = document.getElementById("duesCustColumn");
+    let suppCol = document.getElementById("duesSuppColumn");
+    let custBox = document.getElementById("dueCardCustBox");
+    let suppBox = document.getElementById("dueCardSuppBox");
+
+    if (filterVal === "Customer") {
+      custCol.className = "col-12";
+      custCol.classList.remove("d-none");
+      suppCol.classList.add("d-none");
+      custBox.classList.remove("d-none");
+      suppBox.classList.add("d-none");
+    } else if (filterVal === "Supplier") {
+      suppCol.className = "col-12";
+      suppCol.classList.remove("d-none");
+      custCol.classList.add("d-none");
+      suppBox.classList.remove("d-none");
+      custBox.classList.add("d-none");
+    } else {
+      custCol.className = "col-12 col-md-6";
+      suppCol.className = "col-12 col-md-6";
+      custCol.classList.remove("d-none");
+      suppCol.classList.remove("d-none");
+      custBox.classList.remove("d-none");
+      suppBox.classList.remove("d-none");
+    }
+  }
+
+  function clearLedgerDateFilter() {
+    document.getElementById("ledgerFromDate").value = "";
+    document.getElementById("ledgerToDate").value = "";
+    searchPartyLedger();
   }
 
   function searchPartyLedger() {
     let query = document.getElementById("partySearchInput").value.trim().toLowerCase();
     let role = document.getElementById("partyRoleFilter").value;
+    let fromDate = document.getElementById("ledgerFromDate") ? document.getElementById("ledgerFromDate").value : "";
+    let toDate = document.getElementById("ledgerToDate") ? document.getElementById("ledgerToDate").value : "";
     let tbody = document.getElementById("partyLedgerBody");
 
     if (!query) {
@@ -1039,23 +1722,48 @@
       return;
     }
 
-    let filtered = userTransactions.filter(t => {
-      let matchQuery = t.name.toLowerCase().includes(query);
-      let matchRole = (role === "ALL") || (t.role === role);
-      return matchQuery && matchRole;
-    });
+    let exactMatchName = null;
+    let allNames = new Set();
+    userParties.forEach(p => { if (role === "ALL" || p.role === role) allNames.add(p.name); });
+    userTransactions.forEach(t => { if (role === "ALL" || t.role === role) allNames.add(t.name); });
 
-    if (filtered.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="text-muted">No transactions found.</td></tr>`;
+    for (let name of allNames) {
+      if (name.toLowerCase() === query) {
+        exactMatchName = name;
+        break;
+      }
+    }
+
+    if (!exactMatchName) {
+      for (let name of allNames) {
+        if (name.toLowerCase().startsWith(query)) {
+          exactMatchName = name;
+          break;
+        }
+      }
+    }
+
+    if (!exactMatchName) {
+      tbody.innerHTML = `<tr><td colspan="6" class="text-muted">No matching party found.</td></tr>`;
+      document.getElementById("selectedPartyName").innerText = "Select a Party";
+      document.getElementById("selectedPartyBalance").innerText = "Rs. 0";
       return;
     }
 
-    document.getElementById("selectedPartyName").innerText = filtered[0].name;
+    let filtered = userTransactions.filter(t => {
+      let matchName = t.name.toLowerCase() === exactMatchName.toLowerCase();
+      let matchRole = (role === "ALL") || (t.role === role);
+      let matchFrom = !fromDate || (t.date >= fromDate);
+      let matchTo = !toDate || (t.date <= toDate);
+      return matchName && matchRole && matchFrom && matchTo;
+    });
+
+    document.getElementById("selectedPartyName").innerText = exactMatchName;
 
     let netBalance = 0, rows = "";
     filtered.forEach(t => {
       if (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT") netBalance += t.amount;
-      else netBalance -= t.amount;
+      else if (t.type === "PAYMENT_REC" || t.type === "PAYMENT_PAID" || t.type === "SALE_RETURN" || t.type === "PURCHASE_RETURN") netBalance -= t.amount;
 
       let picBtn = t.img ? `<button class="btn btn-sm btn-outline-info" onclick="viewBillPic('${t.id}')"><i class="fa-solid fa-image"></i> Pic</button>` : `<span class="text-muted small">No Pic</span>`;
 
@@ -1064,14 +1772,14 @@
           <td>${t.date}</td>
           <td>${t.billNo}</td>
           <td><span class="badge bg-secondary">${t.type}</span></td>
-          <td class="fw-bold">Rs. ${t.amount.toLocaleString()}</td>
+          <td class="fw-bold">Rs. ${t.amount.toLocaleString()} (${t.method || 'Credit'})</td>
           <td>${picBtn}</td>
           <td><button class="btn btn-sm btn-danger" onclick="deleteTx(${t.id})"><i class="fa-solid fa-trash"></i></button></td>
         </tr>
       `;
     });
 
-    tbody.innerHTML = rows;
+    tbody.innerHTML = rows || `<tr><td colspan="6" class="text-muted">No transactions found in this date range.</td></tr>`;
     document.getElementById("selectedPartyBalance").innerText = "Rs. " + netBalance.toLocaleString();
   }
 
@@ -1115,101 +1823,402 @@
     });
   }
 
-  // FIXED LEDGER PDF GENERATOR
   function generatePartyLedgerPDF() {
     let partyName = document.getElementById("selectedPartyName").innerText;
     if (partyName === "Select a Party") {
-      return alert("Pehle kisi party ka ledger search karein!");
+      return alert("Pehle kisi specific party ka ledger search ya select karein!");
+    }
+    exportSinglePartyPDF(partyName);
+  }
+
+  function exportSinglePartyPDF(partyName) {
+    if (typeof window.jspdf === 'undefined') {
+      alert("jsPDF library load ho rahi hai, 2 second baad try karein!");
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    const bizName = (currentUser && currentUser.bizName) ? currentUser.bizName : "MY SHOP";
+    const bizPhone = (currentUser && currentUser.phone) ? currentUser.phone : "";
+    const partyObj = userParties.find(p => p.name.toLowerCase() === partyName.toLowerCase());
+    const partyPhone = (partyObj && partyObj.phone) ? partyObj.phone : "-";
+    const partyRole = (partyObj && partyObj.role) ? partyObj.role : "Party";
+
+    const fromDate = document.getElementById("ledgerFromDate") ? document.getElementById("ledgerFromDate").value : "";
+    const toDate = document.getElementById("ledgerToDate") ? document.getElementById("ledgerToDate").value : "";
+    const partyTxs = userTransactions
+      .filter(t => {
+        const matchName = t.name.toLowerCase() === partyName.toLowerCase();
+        const matchFrom = !fromDate || (t.date >= fromDate);
+        const matchTo = !toDate || (t.date <= toDate);
+        return matchName && matchFrom && matchTo;
+      })
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    let totalDebit = 0;
+    let totalCredit = 0;
+    let runningBal = 0;
+
+    const tableRows = partyTxs.map(t => {
+      const amt = Number(t.amount) || 0;
+      const isDebit = (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT");
+      const isCashOnly = (t.type === "SALE_CASH" || t.type === "PURCHASE_CASH");
+
+      let debitStr = "-";
+      let creditStr = "-";
+
+      if (isDebit) {
+        totalDebit += amt;
+        runningBal += amt;
+        debitStr = "Rs. " + amt.toLocaleString();
+      } else if (!isCashOnly) {
+        totalCredit += amt;
+        runningBal -= amt;
+        creditStr = "Rs. " + amt.toLocaleString();
+      }
+
+      let typeLabel = "Bill / Udhar";
+      if (t.type === "PAYMENT_REC" || t.type === "PAYMENT_PAID") typeLabel = "Wasooli / Jama";
+      else if (t.type === "SALE_RETURN" || t.type === "PURCHASE_RETURN") typeLabel = "Return / Wapsi";
+      else if (isCashOnly) typeLabel = "Naqad Bill (Paid)";
+
+      const detailParts = [
+        typeLabel,
+        t.method ? `(${t.method})` : "",
+        (t.notes && t.notes !== "-") ? `- ${t.notes}` : ""
+      ].filter(Boolean).join(" ");
+
+      return [
+        t.date || "-",
+        t.billNo || "-",
+        detailParts,
+        debitStr,
+        creditStr,
+        "Rs. " + runningBal.toLocaleString()
+      ];
+    });
+
+    // Top Navy Corporate Banner
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 34, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(18);
+    doc.text(bizName.toUpperCase(), 14, 15);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(203, 213, 225);
+    doc.text("PARTY LEDGER & ACCOUNT STATEMENT" + (bizPhone ? "  |  Ph: " + bizPhone : ""), 14, 22);
+
+    const todayStr = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const rangeLabel = (fromDate || toDate) ? `Period: ${fromDate || 'Start'} to ${toDate || 'Today'}` : `Statement Date: ${todayStr}`;
+    doc.text(rangeLabel, 196, 15, { align: 'right' });
+    doc.text("Total Entries: " + partyTxs.length, 196, 22, { align: 'right' });
+
+    // Party Info Box
+    doc.setDrawColor(203, 213, 225);
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(14, 40, 182, 17, 2, 2, 'FD');
+    doc.setTextColor(71, 85, 105);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("ACCOUNT / PARTY NAME:", 18, 46);
+    doc.setTextColor(15, 23, 42);
+    doc.setFontSize(12);
+    doc.text(partyName.toUpperCase(), 18, 53);
+
+    doc.setTextColor(71, 85, 105);
+    doc.setFontSize(8.5);
+    doc.text("Role: " + partyRole, 192, 46, { align: 'right' });
+    doc.text("Contact: " + partyPhone, 192, 53, { align: 'right' });
+
+    // 3 Summary Boxes
+    const boxY = 62;
+    // Box 1: Total Udhar (Debit)
+    doc.setFillColor(254, 242, 242);
+    doc.setDrawColor(252, 165, 165);
+    doc.roundedRect(14, boxY, 58, 17, 2, 2, 'FD');
+    doc.setTextColor(153, 27, 27);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL UDHAR (DEBIT)", 18, boxY + 6);
+    doc.setFontSize(11);
+    doc.text("Rs. " + totalDebit.toLocaleString(), 18, boxY + 13);
+
+    // Box 2: Total Wasooli (Credit)
+    doc.setFillColor(240, 253, 244);
+    doc.setDrawColor(134, 239, 172);
+    doc.roundedRect(76, boxY, 58, 17, 2, 2, 'FD');
+    doc.setTextColor(22, 101, 52);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL WASOOLI (CREDIT)", 80, boxY + 6);
+    doc.setFontSize(11);
+    doc.text("Rs. " + totalCredit.toLocaleString(), 80, boxY + 13);
+
+    // Box 3: Net Baqaya (Balance)
+    doc.setFillColor(239, 246, 255);
+    doc.setDrawColor(147, 197, 253);
+    doc.roundedRect(138, boxY, 58, 17, 2, 2, 'FD');
+    doc.setTextColor(30, 58, 138);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "bold");
+    doc.text("NET BAQAYA (BALANCE)", 142, boxY + 6);
+    doc.setFontSize(11);
+    doc.text("Rs. " + runningBal.toLocaleString(), 142, boxY + 13);
+
+    // Professional Grid Table
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 85,
+        head: [['Date', 'Bill #', 'Particulars / Method', 'Udhar (Debit)', 'Jama (Credit)', 'Balance']],
+        body: tableRows.length > 0 ? tableRows : [['-', '-', 'No transactions found', '-', '-', 'Rs. 0']],
+        theme: 'grid',
+        headStyles: {
+          fillColor: [15, 23, 42],
+          textColor: [255, 255, 255],
+          fontStyle: 'bold',
+          fontSize: 8.5,
+          halign: 'center'
+        },
+        styles: {
+          fontSize: 8.5,
+          cellPadding: 3,
+          lineColor: [203, 213, 225],
+          lineWidth: 0.2,
+          textColor: [30, 41, 59]
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252]
+        },
+        columnStyles: {
+          0: { cellWidth: 23, halign: 'center' },
+          1: { cellWidth: 25, halign: 'center', fontStyle: 'bold' },
+          2: { cellWidth: 54 },
+          3: { cellWidth: 26, halign: 'right', textColor: [185, 28, 28] },
+          4: { cellWidth: 26, halign: 'right', textColor: [21, 128, 61] },
+          5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' }
+        }
+      });
+    }
+
+    // Footer & Signature Lines
+    const finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 20 : 250;
+    if (finalY < 275) {
+      doc.setDrawColor(148, 163, 184);
+      doc.line(14, finalY, 68, finalY);
+      doc.line(142, finalY, 196, finalY);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Customer / Party Signature", 14, finalY + 5);
+      doc.text("Authorized Stamp & Signature", 196, finalY + 5, { align: 'right' });
+    }
+
+    doc.save(partyName.replace(/\s+/g, '_') + "_Ledger.pdf");
+  }
+
+  function downloadAllDuesPDF(type) {
+    if (typeof window.jspdf === 'undefined') {
+      alert("jsPDF library load ho rahi hai, 2 second baad try karein!");
+      return;
     }
 
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(16);
-    doc.text(`Party Ledger: ${partyName}`, 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Shop Name: ${currentUser ? currentUser.bizName : 'POS System'}`, 14, 22);
-    doc.text(`Net Balance: ${document.getElementById("selectedPartyBalance").innerText}`, 14, 28);
-
-    let rows = [];
-    let query = document.getElementById("partySearchInput").value.trim().toLowerCase();
-    let role = document.getElementById("partyRoleFilter").value;
-
-    let filtered = userTransactions.filter(t => {
-      let matchQuery = t.name.toLowerCase().includes(query);
-      let matchRole = (role === "ALL") || (t.role === role);
-      return matchQuery && matchRole;
-    });
-
-    filtered.forEach(t => {
-      rows.push([t.date, t.billNo, t.type, `Rs. ${t.amount.toLocaleString()}`, t.method || 'Cash', t.notes || '-']);
-    });
-
-    doc.autoTable({
-      startY: 34,
-      head: [['Date', 'Bill #', 'Type', 'Amount', 'Payment Method', 'Notes']],
-      body: rows,
-      theme: 'grid',
-      headStyles: { fillColor: [30, 41, 59] }
-    });
-
-    doc.save(`${partyName}_Ledger_Report.pdf`);
-  }
-
-  // FIXED DUES LIST PDF GENERATOR
-  function downloadAllDuesPDF(type) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    doc.setFontSize(16);
-    doc.text(`${type} Dues Report`, 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Business Name: ${currentUser ? currentUser.bizName : 'POS System'}`, 14, 22);
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const bizName = (currentUser && currentUser.bizName) ? currentUser.bizName : 'MY SHOP';
 
     let duesMap = {};
-    userTransactions.forEach(t => {
-      if (t.role === type) {
-        if (!duesMap[t.name]) duesMap[t.name] = { total: 0, paid: 0 };
-        if (type === "Customer") {
-          if (t.type === "SALE_CREDIT") duesMap[t.name].total += t.amount;
-          else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") duesMap[t.name].paid += t.amount;
-        } else {
-          if (t.type === "PURCHASE_CREDIT") duesMap[t.name].total += t.amount;
-          else if (t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") duesMap[t.name].paid += t.amount;
-        }
-      }
-    });
+    if (typeof userParties !== 'undefined') {
+      userParties.filter(p => p.role === type).forEach(p => {
+        duesMap[p.name] = { phone: p.phone || '-', total: 0, paid: 0 };
+      });
+    }
 
-    let rows = [];
+    if (typeof userTransactions !== 'undefined') {
+      userTransactions.forEach(t => {
+        if (t.role === type) {
+          if (!duesMap[t.name]) duesMap[t.name] = { phone: '-', total: 0, paid: 0 };
+          if (type === "Customer") {
+            if (t.type === "SALE_CREDIT") duesMap[t.name].total += Number(t.amount) || 0;
+            else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") duesMap[t.name].paid += Number(t.amount) || 0;
+          } else {
+            if (t.type === "PURCHASE_CREDIT") duesMap[t.name].total += Number(t.amount) || 0;
+            else if (t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") duesMap[t.name].paid += Number(t.amount) || 0;
+          }
+        }
+      });
+    }
+
+    let tableBody = [];
     let grandTotal = 0;
+    let sr = 1;
+
     for (let name in duesMap) {
       let net = duesMap[name].total - duesMap[name].paid;
       if (net !== 0) {
         grandTotal += net;
-        rows.push([name, `Rs. ${net.toLocaleString()}`]);
+        tableBody.push([
+          sr++,
+          name,
+          duesMap[name].phone,
+          "Rs. " + duesMap[name].total.toLocaleString(),
+          "Rs. " + duesMap[name].paid.toLocaleString(),
+          "Rs. " + net.toLocaleString()
+        ]);
       }
     }
 
-    doc.autoTable({
-      startY: 28,
-      head: [[`${type} Name`, 'Net Balance']],
-      body: rows,
-      theme: 'striped',
-      headStyles: { fillColor: type === 'Customer' ? [220, 53, 69] : [255, 193, 7] }
-    });
+    if (tableBody.length === 0) {
+      alert("Koi " + type + " Due data maujood nahi hai!");
+      return;
+    }
 
-    let finalY = doc.lastAutoTable.previous.finalY || 40;
-    doc.setFontSize(12);
-    doc.text(`Total Dues Amount: Rs. ${grandTotal.toLocaleString()}`, 14, finalY + 10);
+    // Header Banner
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 32, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(17);
+    doc.text(bizName.toUpperCase(), 14, 14);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(203, 213, 225);
+    doc.text(type.toUpperCase() + " COMBINED DUES SUMMARY REPORT", 14, 22);
+    doc.text("Date: " + new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), 196, 14, { align: 'right' });
+    doc.text("Total Parties: " + tableBody.length, 196, 22, { align: 'right' });
 
-    doc.save(`${type}_Dues_Report.pdf`);
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 38,
+        head: [['#', type + ' Name', 'Phone', 'Total Udhar', 'Total Jama', 'Net Balance']],
+        body: tableBody,
+        foot: [['', 'GRAND TOTAL', '', '', '', 'Rs. ' + grandTotal.toLocaleString()]],
+        theme: 'grid',
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
+        footStyles: { fillColor: [239, 246, 255], textColor: [30, 58, 138], fontStyle: 'bold', fontSize: 9.5, halign: 'right' },
+        styles: { fontSize: 8.5, cellPadding: 3, lineColor: [203, 213, 225], lineWidth: 0.2 },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: {
+          0: { cellWidth: 12, halign: 'center' },
+          1: { cellWidth: 54, fontStyle: 'bold' },
+          2: { cellWidth: 30, halign: 'center' },
+          3: { cellWidth: 28, halign: 'right' },
+          4: { cellWidth: 28, halign: 'right' },
+          5: { cellWidth: 30, halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] }
+        }
+      });
+    }
+
+    doc.save(type + "_Dues_Report.pdf");
   }
 
   function exportToExcel() {
-    let ws = XLSX.utils.json_to_sheet(userTransactions);
-    let wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Transactions");
-    XLSX.writeFile(wb, "POS_Data.xlsx");
+    try {
+      if (typeof XLSX === 'undefined') {
+        alert("Excel library load ho rahi hai, 2 second baad dubara click karein!");
+        return;
+      }
+
+      const hasParties = Array.isArray(userParties) && userParties.length > 0;
+      const hasTxs = Array.isArray(userTransactions) && userTransactions.length > 0;
+
+      if (!hasParties && !hasTxs) {
+        alert("Export karne ke liye koi data maujood nahi hai!");
+        return;
+      }
+
+      const typeLabels = {
+        SALE_CREDIT: "Sell on Credit (Udhar)",
+        SALE_CASH: "Sell Cash (Naqad)",
+        PAYMENT_REC: "Payment Received (Wasooli)",
+        SALE_RETURN: "Sale Return (Wapsi)",
+        PURCHASE_CREDIT: "Purchase on Credit (Udhar)",
+        PURCHASE_CASH: "Purchase Cash (Naqad)",
+        PAYMENT_PAID: "Payment Paid (Diya)",
+        PURCHASE_RETURN: "Purchase Return (Wapsi)"
+      };
+
+      // Sheet 1: Clean Transactions (without base64 image crash)
+      const cleanTxs = (userTransactions || []).map((t, i) => ({
+        "Sr #": i + 1,
+        "Date": t.date || "-",
+        "Bill #": t.billNo || "-",
+        "Role": t.role || "-",
+        "Party Name": t.name || "-",
+        "Transaction Type": typeLabels[t.type] || t.type || "-",
+        "Amount (Rs)": Number(t.amount) || 0,
+        "Payment Method": t.method || "Credit",
+        "Bill Pic": t.img ? "Yes" : "No",
+        "Notes": t.notes || "-"
+      }));
+
+      // Sheet 2: Party Balances Summary
+      const summaryMap = {};
+      (userParties || []).forEach(p => {
+        const key = (p.role || "Customer") + "__" + p.name.toLowerCase();
+        summaryMap[key] = {
+          "Party Name": p.name,
+          "Role": p.role || "Customer",
+          "Phone": p.phone || "-",
+          "Total Udhar (Rs)": 0,
+          "Total Jama / Wapsi (Rs)": 0,
+          "Net Balance (Rs)": 0
+        };
+      });
+
+      (userTransactions || []).forEach(t => {
+        const role = t.role || "Customer";
+        const key = role + "__" + (t.name || "Unknown").toLowerCase();
+        if (!summaryMap[key]) {
+          summaryMap[key] = {
+            "Party Name": t.name || "Unknown",
+            "Role": role,
+            "Phone": "-",
+            "Total Udhar (Rs)": 0,
+            "Total Jama / Wapsi (Rs)": 0,
+            "Net Balance (Rs)": 0
+          };
+        }
+        const amt = Number(t.amount) || 0;
+        if (t.type === "SALE_CREDIT" || t.type === "PURCHASE_CREDIT") {
+          summaryMap[key]["Total Udhar (Rs)"] += amt;
+        } else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN" || t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") {
+          summaryMap[key]["Total Jama / Wapsi (Rs)"] += amt;
+        }
+        summaryMap[key]["Net Balance (Rs)"] = summaryMap[key]["Total Udhar (Rs)"] - summaryMap[key]["Total Jama / Wapsi (Rs)"];
+      });
+
+      const summaryRows = Object.values(summaryMap);
+
+      const wb = XLSX.utils.book_new();
+      const wsSum = XLSX.utils.json_to_sheet(summaryRows.length ? summaryRows : [{ Message: "No parties yet" }]);
+      const wsTx = XLSX.utils.json_to_sheet(cleanTxs.length ? cleanTxs : [{ Message: "No transactions yet" }]);
+
+      wsSum['!cols'] = [{ wch: 24 }, { wch: 12 }, { wch: 16 }, { wch: 18 }, { wch: 22 }, { wch: 18 }];
+      wsTx['!cols'] = [{ wch: 7 }, { wch: 13 }, { wch: 14 }, { wch: 11 }, { wch: 22 }, { wch: 26 }, { wch: 15 }, { wch: 16 }, { wch: 10 }, { wch: 28 }];
+
+      XLSX.utils.book_append_sheet(wb, wsSum, "Party Balances");
+      XLSX.utils.book_append_sheet(wb, wsTx, "All Transactions");
+
+      const bizName = (currentUser && currentUser.bizName) ? currentUser.bizName.replace(/[^a-zA-Z0-9_-]/g, '_') : "POS";
+      const fileName = `${bizName}_Report_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 200);
+    } catch (err) {
+      alert("Excel export error: " + err.message);
+    }
   }
 </script>
 </body>
