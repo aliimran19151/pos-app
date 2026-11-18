@@ -1098,18 +1098,33 @@
 
   function previewBillImage(event, targetImgId) {
     let file = event.target.files[0];
-    if (file) {
-      let reader = new FileReader();
-      reader.onload = function(e) {
-        if (targetImgId === 'billImgPreview') currentBillBase64 = e.target.result;
-        if (targetImgId === 'openingImgPreview') currentOpeningBase64 = e.target.result;
-        
+    if (!file) return;
+    let reader = new FileReader();
+    reader.onload = function(e) {
+      let tempImg = new Image();
+      tempImg.onload = function() {
+        let maxDim = 900;
+        let w = tempImg.width, h = tempImg.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) { h = Math.round(h * maxDim / w); w = maxDim; }
+          else { w = Math.round(w * maxDim / h); h = maxDim; }
+        }
+        let canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(tempImg, 0, 0, w, h);
+        let compressed = canvas.toDataURL('image/jpeg', 0.6);
+
+        if (targetImgId === 'billImgPreview') currentBillBase64 = compressed;
+        if (targetImgId === 'openingImgPreview') currentOpeningBase64 = compressed;
+
         let img = document.getElementById(targetImgId);
-        img.src = e.target.result;
+        img.src = compressed;
         img.classList.remove("d-none");
-      }
-      reader.readAsDataURL(file);
-    }
+      };
+      tempImg.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   function openEntryModal() {
@@ -1774,7 +1789,10 @@
           <td><span class="badge bg-secondary">${t.type}</span></td>
           <td class="fw-bold">Rs. ${t.amount.toLocaleString()} (${t.method || 'Credit'})</td>
           <td>${picBtn}</td>
-          <td><button class="btn btn-sm btn-danger" onclick="deleteTx(${t.id})"><i class="fa-solid fa-trash"></i></button></td>
+          <td class="text-nowrap">
+            <button class="btn btn-sm btn-outline-primary me-1" onclick="openEditTxModal(${t.id})"><i class="fa-solid fa-pen"></i></button>
+            <button class="btn btn-sm btn-danger" onclick="deleteTx(${t.id})"><i class="fa-solid fa-trash"></i></button>
+          </td>
         </tr>
       `;
     });
@@ -1791,7 +1809,53 @@
     }
   }
 
-  async function deleteTx(id) {
+    function openEditTxModal(txId) {
+    let tx = userTransactions.find(t => t.id == txId);
+    if (!tx) return;
+    document.getElementById("editTxId").value = tx.id;
+    document.getElementById("editTxDate").value = tx.date || "";
+    document.getElementById("editTxBill").value = tx.billNo || "";
+    document.getElementById("editTxType").value = tx.type || "SALE_CREDIT";
+    document.getElementById("editTxAmount").value = tx.amount || 0;
+    document.getElementById("editTxMethod").value = tx.method || "Credit";
+    document.getElementById("editTxNotes").value = tx.notes || "";
+    document.getElementById("customEditOverlay").style.display = "flex";
+  }
+
+  function closeCustomEditModal() {
+    document.getElementById("customEditOverlay").style.display = "none";
+  }
+
+  async function saveEditedTx() {
+    let txId = document.getElementById("editTxId").value;
+    let idx = userTransactions.findIndex(t => t.id == txId);
+    if (idx === -1) return;
+
+    let newAmt = parseFloat(document.getElementById("editTxAmount").value);
+    if (isNaN(newAmt) || newAmt <= 0) {
+      alert("Sahi amount enter karein!");
+      return;
+    }
+
+    let btn = document.getElementById("saveEditTxBtn");
+    btn.disabled = true;
+
+    userTransactions[idx].date = document.getElementById("editTxDate").value || userTransactions[idx].date;
+    userTransactions[idx].billNo = document.getElementById("editTxBill").value.trim() || "-";
+    userTransactions[idx].type = document.getElementById("editTxType").value;
+    userTransactions[idx].amount = newAmt;
+    userTransactions[idx].method = document.getElementById("editTxMethod").value;
+    userTransactions[idx].notes = document.getElementById("editTxNotes").value.trim();
+
+    closeCustomEditModal();
+    refreshDashboard();
+    renderPartiesTables();
+    searchPartyLedger();
+    await saveToServer();
+    btn.disabled = false;
+  }
+
+async function deleteTx(id) {
     userTransactions = userTransactions.filter(t => t.id !== id);
     await saveToServer();
     refreshDashboard();
@@ -1810,7 +1874,7 @@
         labels: ['Sales', 'Customer Dues', 'Supplier Dues'],
         datasets: [{ data: [sales, custDue, suppDue], backgroundColor: ['#28a745', '#dc3545', '#ffc107'] }]
       },
-      options: { plugins: { legend: { display: false } } }
+      options: { animation: false, plugins: { legend: { display: false } } }
     });
 
     let ctx2 = document.getElementById('paymentMethodChart').getContext('2d');
@@ -2221,5 +2285,65 @@
     }
   }
 </script>
+
+<!-- Lightweight Edit Entry Overlay -->
+<div id="customEditOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:12px;">
+  <div style="background:#fff; width:100%; max-width:420px; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+    <div style="background:#1e293b; color:#fff; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+      <strong style="font-size:15px;"><i class="fa-solid fa-pen-to-square me-1"></i> Edit Ledger Entry</strong>
+      <button type="button" onclick="closeCustomEditModal()" style="background:none; border:none; color:#fff; font-size:22px; line-height:1; cursor:pointer;">&times;</button>
+    </div>
+    <div style="padding:14px;">
+      <input type="hidden" id="editTxId">
+      <div class="row g-2">
+        <div class="col-6">
+          <label class="form-label small fw-bold mb-1">Date</label>
+          <input type="date" id="editTxDate" class="form-control" style="font-size:16px;">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-bold mb-1">Bill #</label>
+          <input type="text" id="editTxBill" class="form-control" style="font-size:16px;">
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-bold mb-1">Transaction Type</label>
+          <select id="editTxType" class="form-select" style="font-size:16px;">
+            <option value="SALE_CREDIT">Sell on Credit (Becha Udhar)</option>
+            <option value="SALE_CASH">Sell Cash (Naqad Becha)</option>
+            <option value="PAYMENT_REC">Payment Received (Paisa Mila)</option>
+            <option value="SALE_RETURN">Sale Return (Wapsi)</option>
+            <option value="PURCHASE_CREDIT">Purchase on Credit (Khareeda Udhar)</option>
+            <option value="PURCHASE_CASH">Purchase Cash (Naqad Khareeda)</option>
+            <option value="PAYMENT_PAID">Payment Paid (Paisa Diya)</option>
+            <option value="PURCHASE_RETURN">Purchase Return (Wapsi)</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-bold mb-1">Amount (Rs)</label>
+          <input type="number" id="editTxAmount" class="form-control" style="font-size:16px;">
+        </div>
+        <div class="col-6">
+          <label class="form-label small fw-bold mb-1">Method</label>
+          <select id="editTxMethod" class="form-select" style="font-size:16px;">
+            <option value="Credit">Credit</option>
+            <option value="Cash">Cash</option>
+            <option value="Online / Bank">Online / Bank</option>
+            <option value="Cheque">Cheque</option>
+            <option value="JazzCash">JazzCash</option>
+            <option value="EasyPaisa">EasyPaisa</option>
+          </select>
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-bold mb-1">Notes</label>
+          <input type="text" id="editTxNotes" class="form-control" style="font-size:16px;" placeholder="Optional note...">
+        </div>
+      </div>
+    </div>
+    <div style="background:#f8fafc; padding:10px 14px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e2e8f0;">
+      <button type="button" class="btn btn-sm btn-secondary fw-bold" onclick="closeCustomEditModal()">Cancel</button>
+      <button type="button" id="saveEditTxBtn" class="btn btn-sm btn-primary fw-bold" onclick="saveEditedTx()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
