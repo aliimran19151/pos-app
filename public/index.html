@@ -354,16 +354,59 @@
             <div class="col-6 col-md-3"><div class="card card-stat p-2 p-md-3 bg-white"><small class="text-muted fw-bold" style="font-size: 11px;">TOTAL RETURNS</small><h4 class="fw-bold text-primary mb-0" id="dashTotalReturns">Rs. 0</h4></div></div>
           </div>
 
-          <div class="row g-3 mb-4">
+          <div class="row g-3 mb-3">
             <div class="col-12 col-md-8"><div class="card card-stat p-3 bg-white"><h6 class="fw-bold mb-3">Sales, Purchases & Dues Breakdown</h6><canvas id="mainBusinessChart" height="150"></canvas></div></div>
             <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white"><h6 class="fw-bold mb-3">Payment Methods Share</h6><canvas id="paymentMethodChart" height="200"></canvas></div></div>
+          </div>
+
+          <!-- UPCOMING / POST-DATED CHEQUES SECTION -->
+          <div class="card card-stat p-3 bg-white mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+              <div>
+                <h6 class="fw-bold mb-0"><i class="fa-solid fa-money-check-dollar text-primary me-1"></i> Future / Post-Dated Cheques (PDC) <span class="badge bg-warning text-dark ms-1" id="pendingChequesCountBadge">0 Pending</span></h6>
+                <small class="text-muted">Aane wali tarikh ke cheques aur unka clearance status</small>
+              </div>
+              <select id="chequeStatusFilter" class="form-select form-select-sm fw-bold border-primary" style="width:auto;" onchange="renderChequesWidget()">
+                <option value="PENDING">Pending / Upcoming</option>
+                <option value="DUE_SOON">Due Today / Next 7 Days</option>
+                <option value="CLEARED">Cleared Cheques</option>
+                <option value="BOUNCED">Bounced / Returned</option>
+                <option value="ALL">All Cheques</option>
+              </select>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered text-center align-middle mb-0" style="font-size:12.5px;">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Due Date</th>
+                    <th>Party Name</th>
+                    <th>Role</th>
+                    <th>Cheque # / Bank</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="dashboardChequesBody">
+                  <tr><td colspan="7" class="text-muted">No cheques recorded yet.</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
         <div class="tab-pane fade" id="tabCustomers">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Customers</h4>
-            <button class="btn btn-success fw-bold btn-sm" onclick="openAddPartyModal('Customer')"><i class="fa-solid fa-user-plus me-1"></i> Add Customer</button>
+            <div class="d-flex align-items-center gap-2">
+              <select id="custSortSelect" class="form-select form-select-sm fw-bold border-secondary" onchange="renderPartiesTables()">
+                <option value="HIGH_BAL">Sort: Highest Balance</option>
+                <option value="LOW_BAL">Sort: Lowest Balance</option>
+                <option value="AZ">Sort: Name A - Z</option>
+                <option value="ZA">Sort: Name Z - A</option>
+              </select>
+              <button class="btn btn-success fw-bold btn-sm text-nowrap" onclick="openAddPartyModal('Customer')"><i class="fa-solid fa-user-plus me-1"></i> Add Customer</button>
+            </div>
           </div>
           <div class="card card-stat p-2 p-md-3 bg-white">
             <div class="table-responsive">
@@ -376,9 +419,17 @@
         </div>
 
         <div class="tab-pane fade" id="tabSuppliers">
-          <div class="d-flex justify-content-between align-items-center mb-3">
+          <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Suppliers</h4>
-            <button class="btn btn-warning fw-bold text-dark btn-sm" onclick="openAddPartyModal('Supplier')"><i class="fa-solid fa-truck me-1"></i> Add Supplier</button>
+            <div class="d-flex align-items-center gap-2">
+              <select id="suppSortSelect" class="form-select form-select-sm fw-bold border-secondary" onchange="renderPartiesTables()">
+                <option value="HIGH_BAL">Sort: Highest Balance</option>
+                <option value="LOW_BAL">Sort: Lowest Balance</option>
+                <option value="AZ">Sort: Name A - Z</option>
+                <option value="ZA">Sort: Name Z - A</option>
+              </select>
+              <button class="btn btn-warning fw-bold text-dark btn-sm text-nowrap" onclick="openAddPartyModal('Supplier')"><i class="fa-solid fa-truck me-1"></i> Add Supplier</button>
+            </div>
           </div>
           <div class="card card-stat p-2 p-md-3 bg-white">
             <div class="table-responsive">
@@ -461,9 +512,14 @@
         <div class="tab-pane fade" id="tabDues">
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Market Combined Dues Summary</h4>
-            <div class="d-flex align-items-center gap-2">
-              <label class="fw-bold small mb-0 text-nowrap"><i class="fa-solid fa-filter me-1"></i> View Filter:</label>
-              <select id="duesFilterSelect" class="form-select form-select-sm fw-bold border-primary" style="min-width: 160px;" onchange="renderDuesLists()">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <select id="duesSortSelect" class="form-select form-select-sm fw-bold border-secondary" onchange="renderDuesLists()">
+                <option value="HIGH_BAL">Sort: Highest Balance</option>
+                <option value="LOW_BAL">Sort: Lowest Balance</option>
+                <option value="AZ">Sort: Name A - Z</option>
+                <option value="ZA">Sort: Name Z - A</option>
+              </select>
+              <select id="duesFilterSelect" class="form-select form-select-sm fw-bold border-primary" onchange="renderDuesLists()">
                 <option value="ALL">Show All Parties</option>
                 <option value="Customer">Customers Only</option>
                 <option value="Supplier">Suppliers Only</option>
@@ -1572,7 +1628,7 @@
     rowDiv.className = "row g-2 align-items-center mb-1 split-row";
     rowDiv.innerHTML = `
       <div class="col-6">
-        <select class="form-select form-select-sm split-method">
+        <select class="form-select form-select-sm split-method" onchange="toggleChequeFields(this)">
           <option value="Cash">Cash</option>
           <option value="Online / Bank">Online / Bank</option>
           <option value="Cheque">Cheque</option>
@@ -1585,6 +1641,18 @@
       </div>
       <div class="col-2 text-end">
         <button type="button" class="btn btn-sm btn-outline-danger py-0" onclick="this.closest('.split-row').remove()"><i class="fa-solid fa-trash"></i></button>
+      </div>
+      <div class="col-12 cheque-extra-fields d-none mt-1 pt-1 border-top">
+        <div class="row g-1">
+          <div class="col-6">
+            <label class="form-label mb-0 text-muted" style="font-size:10px;">Cheque Due Date</label>
+            <input type="date" class="form-control form-control-sm split-cheque-date" value="${new Date().toISOString().split('T')[0]}">
+          </div>
+          <div class="col-6">
+            <label class="form-label mb-0 text-muted" style="font-size:10px;">Cheque # / Bank</label>
+            <input type="text" class="form-control form-control-sm split-cheque-no" placeholder="e.g. Meezan #4521">
+          </div>
+        </div>
       </div>
     `;
     container.appendChild(rowDiv);
@@ -1695,6 +1763,18 @@
                 let sMethod = sr.querySelector(".split-method").value;
                 let sAmount = parseFloat(sr.querySelector(".split-amount").value) || 0;
                 if (sAmount > 0) {
+                  let chqDate = "";
+                  let chqNo = "";
+                  let chqStatus = "";
+                  let extraNote = ` (Split: ${sMethod})`;
+                  if (sMethod === "Cheque") {
+                    const chqDateEl = sr.querySelector(".split-cheque-date");
+                    const chqNoEl = sr.querySelector(".split-cheque-no");
+                    chqDate = chqDateEl ? chqDateEl.value : date;
+                    chqNo = chqNoEl ? chqNoEl.value.trim() : "";
+                    chqStatus = (chqDate && chqDate > date) ? "PENDING" : "CLEARED";
+                    extraNote = ` (Cheque${chqNo ? ' #' + chqNo : ''} | Due: ${chqDate})`;
+                  }
                   userTransactions.push({
                     id: Date.now() + Math.random(),
                     role,
@@ -1704,7 +1784,10 @@
                     amount: sAmount,
                     method: sMethod,
                     date,
-                    notes: notes + ` (Split: ${sMethod})`,
+                    chequeDate: chqDate,
+                    chequeNo: chqNo,
+                    chequeStatus: chqStatus,
+                    notes: notes + extraNote,
                     img: currentBillBase64
                   });
                 }
@@ -1873,6 +1956,7 @@
 
     renderDuesLists();
     renderCharts(totalSales, custDue, suppDue, methodShare);
+    if (typeof renderChequesWidget === 'function') renderChequesWidget();
   }
 
   function renderPartiesTables() {
@@ -1898,16 +1982,36 @@
       }
     });
 
+    const custSort = document.getElementById("custSortSelect") ? document.getElementById("custSortSelect").value : "HIGH_BAL";
+    const suppSort = document.getElementById("suppSortSelect") ? document.getElementById("suppSortSelect").value : "HIGH_BAL";
+
+    const sortEntries = (arr, mode) => {
+      return arr.sort((a, b) => {
+        if (mode === "HIGH_BAL") return b.net - a.net;
+        if (mode === "LOW_BAL") return a.net - b.net;
+        if (mode === "AZ") return a.name.localeCompare(b.name);
+        if (mode === "ZA") return b.name.localeCompare(a.name);
+        return 0;
+      });
+    };
+
+    const custArr = sortEntries(Object.keys(custMap).map(c => ({
+      name: c, phone: custMap[c].phone, net: custMap[c].total - custMap[c].paid
+    })), custSort);
+
+    const suppArr = sortEntries(Object.keys(suppMap).map(s => ({
+      name: s, phone: suppMap[s].phone, net: suppMap[s].total - suppMap[s].paid
+    })), suppSort);
+
     let custHtml = "", suppHtml = "";
 
-    for (let c in custMap) {
-      let net = custMap[c].total - custMap[c].paid;
-      let safeC = c.replace(/'/g, "\\'");
+    custArr.forEach(item => {
+      let safeC = item.name.replace(/'/g, "\\'");
       custHtml += `
         <tr>
-          <td>${c}</td>
-          <td>${custMap[c].phone}</td>
-          <td class="fw-bold text-danger">Rs. ${net.toLocaleString()}</td>
+          <td>${item.name}</td>
+          <td>${item.phone}</td>
+          <td class="fw-bold text-danger">Rs. ${item.net.toLocaleString()}</td>
           <td class="text-nowrap">
             <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button>
             <button class="btn btn-sm btn-outline-warning text-dark me-1 fw-bold" title="Edit Name/Phone" onclick="openEditPartyModal('${safeC}', 'Customer')"><i class="fa-solid fa-pen"></i></button>
@@ -1915,16 +2019,15 @@
           </td>
         </tr>
       `;
-    }
+    });
 
-    for (let s in suppMap) {
-      let net = suppMap[s].total - suppMap[s].paid;
-      let safeS = s.replace(/'/g, "\\'");
+    suppArr.forEach(item => {
+      let safeS = item.name.replace(/'/g, "\\'");
       suppHtml += `
         <tr>
-          <td>${s}</td>
-          <td>${suppMap[s].phone}</td>
-          <td class="fw-bold text-warning">Rs. ${net.toLocaleString()}</td>
+          <td>${item.name}</td>
+          <td>${item.phone}</td>
+          <td class="fw-bold text-warning">Rs. ${item.net.toLocaleString()}</td>
           <td class="text-nowrap">
             <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button>
             <button class="btn btn-sm btn-outline-warning text-dark me-1 fw-bold" title="Edit Name/Phone" onclick="openEditPartyModal('${safeS}', 'Supplier')"><i class="fa-solid fa-pen"></i></button>
@@ -1932,7 +2035,7 @@
           </td>
         </tr>
       `;
-    }
+    });
 
     custBody.innerHTML = custHtml || `<tr><td colspan="4" class="text-muted">No customers found.</td></tr>`;
     suppBody.innerHTML = suppHtml || `<tr><td colspan="4" class="text-muted">No suppliers found.</td></tr>`;
@@ -1967,40 +2070,44 @@
       }
     });
 
+    const duesSort = document.getElementById("duesSortSelect") ? document.getElementById("duesSortSelect").value : "HIGH_BAL";
+    const sortDues = (arr) => arr.sort((a, b) => {
+      if (duesSort === "HIGH_BAL") return b.net - a.net;
+      if (duesSort === "LOW_BAL") return a.net - b.net;
+      if (duesSort === "AZ") return a.name.localeCompare(b.name);
+      if (duesSort === "ZA") return b.name.localeCompare(a.name);
+      return 0;
+    });
+
+    const custDuesArr = sortDues(Object.keys(custMap).map(c => ({ name: c, net: custMap[c].total - custMap[c].paid })).filter(x => x.net !== 0));
+    const suppDuesArr = sortDues(Object.keys(suppMap).map(s => ({ name: s, net: suppMap[s].total - suppMap[s].paid })).filter(x => x.net !== 0));
+
     let custHtml = "", suppHtml = "";
-    let grandCust = 0, grandSupp = 0, custCount = 0, suppCount = 0;
+    let grandCust = 0, grandSupp = 0, custCount = custDuesArr.length, suppCount = suppDuesArr.length;
 
-    for (let c in custMap) {
-      let net = custMap[c].total - custMap[c].paid;
-      if (net !== 0) {
-        grandCust += net;
-        custCount++;
-        let safeC = c.replace(/'/g, "\\'");
-        custHtml += `
-          <tr>
-            <td class="fw-bold text-start ps-2">${c}</td>
-            <td class="fw-bold text-danger">Rs. ${net.toLocaleString()}</td>
-            <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button></td>
-          </tr>
-        `;
-      }
-    }
+    custDuesArr.forEach(item => {
+      grandCust += item.net;
+      let safeC = item.name.replace(/'/g, "\\'");
+      custHtml += `
+        <tr>
+          <td class="fw-bold text-start ps-2">${item.name}</td>
+          <td class="fw-bold text-danger">Rs. ${item.net.toLocaleString()}</td>
+          <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button></td>
+        </tr>
+      `;
+    });
 
-    for (let s in suppMap) {
-      let net = suppMap[s].total - suppMap[s].paid;
-      if (net !== 0) {
-        grandSupp += net;
-        suppCount++;
-        let safeS = s.replace(/'/g, "\\'");
-        suppHtml += `
-          <tr>
-            <td class="fw-bold text-start ps-2">${s}</td>
-            <td class="fw-bold text-warning">Rs. ${net.toLocaleString()}</td>
-            <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button></td>
-          </tr>
-        `;
-      }
-    }
+    suppDuesArr.forEach(item => {
+      grandSupp += item.net;
+      let safeS = item.name.replace(/'/g, "\\'");
+      suppHtml += `
+        <tr>
+          <td class="fw-bold text-start ps-2">${item.name}</td>
+          <td class="fw-bold text-warning">Rs. ${item.net.toLocaleString()}</td>
+          <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button></td>
+        </tr>
+      `;
+    });
 
     let grandNet = grandCust - grandSupp;
 
@@ -3017,6 +3124,112 @@
     await saveToServer();
 
     btn.disabled = false;
+  }
+
+
+  function toggleChequeFields(selectEl) {
+    const row = selectEl.closest('.split-row');
+    if (!row) return;
+    const extra = row.querySelector('.cheque-extra-fields');
+    if (!extra) return;
+    if (selectEl.value === 'Cheque') extra.classList.remove('d-none');
+    else extra.classList.add('d-none');
+  }
+
+  function renderChequesWidget() {
+    const tbody = document.getElementById("dashboardChequesBody");
+    const badge = document.getElementById("pendingChequesCountBadge");
+    if (!tbody) return;
+
+    const filter = document.getElementById("chequeStatusFilter") ? document.getElementById("chequeStatusFilter").value : "PENDING";
+    const todayStr = getLocalISODate(0);
+    const next7Str = getLocalISODate(7);
+
+    const allCheques = (userTransactions || []).filter(t => t.method === "Cheque").map(t => {
+      const due = t.chequeDate || t.date || "";
+      const status = t.chequeStatus || (due > todayStr ? "PENDING" : "CLEARED");
+      return { ...t, _due: due, _status: status };
+    }).sort((a, b) => a._due.localeCompare(b._due));
+
+    const pendingTotal = allCheques.filter(c => c._status === "PENDING").length;
+    if (badge) badge.innerText = `${pendingTotal} Pending`;
+
+    const filtered = allCheques.filter(c => {
+      if (filter === "ALL") return true;
+      if (filter === "DUE_SOON") return c._status === "PENDING" && c._due <= next7Str;
+      return c._status === filter;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="text-muted">No cheques in this filter.</td></tr>`;
+      return;
+    }
+
+    let html = "";
+    filtered.forEach(c => {
+      const isOverdue = c._status === "PENDING" && c._due < todayStr;
+      const isToday = c._status === "PENDING" && c._due === todayStr;
+      let statusBadge = `<span class="badge bg-warning text-dark">Pending</span>`;
+      if (isOverdue) statusBadge = `<span class="badge bg-danger">Overdue</span>`;
+      else if (isToday) statusBadge = `<span class="badge bg-info text-dark">Due Today</span>`;
+      else if (c._status === "CLEARED") statusBadge = `<span class="badge bg-success">Cleared</span>`;
+      else if (c._status === "BOUNCED") statusBadge = `<span class="badge bg-dark">Bounced</span>`;
+
+      let actionBtns = "";
+      if (c._status === "PENDING") {
+        actionBtns = `
+          <button class="btn btn-sm btn-success py-0 px-2 fw-bold me-1" style="font-size:11px;" onclick="updateChequeStatus('${c.id}', 'CLEARED')">Clear</button>
+          <button class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" style="font-size:11px;" onclick="updateChequeStatus('${c.id}', 'BOUNCED')">Bounce</button>
+        `;
+      } else {
+        actionBtns = `<button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:11px;" onclick="updateChequeStatus('${c.id}', 'PENDING')">Reset</button>`;
+      }
+
+      html += `
+        <tr class="${isOverdue ? 'table-danger' : (isToday ? 'table-warning' : '')}">
+          <td class="fw-bold">${c._due}</td>
+          <td class="fw-bold text-start ps-2">${c.name}</td>
+          <td><span class="badge bg-secondary">${c.role}</span></td>
+          <td>${c.chequeNo || '-'}</td>
+          <td class="fw-bold text-primary">Rs. ${Number(c.amount).toLocaleString()}</td>
+          <td>${statusBadge}</td>
+          <td class="text-nowrap">${actionBtns}</td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  async function updateChequeStatus(txId, newStatus) {
+    const idx = userTransactions.findIndex(t => String(t.id) === String(txId));
+    if (idx === -1) return;
+    const tx = userTransactions[idx];
+
+    if (newStatus === "BOUNCED") {
+      if (!confirm(`Kya yeh Rs. ${Number(tx.amount).toLocaleString()} ka cheque bounce ho gaya hai? Is se party ka balance wapis add ho jayega.`)) return;
+      tx.chequeStatus = "BOUNCED";
+      const reverseType = tx.role === "Customer" ? "SALE_CREDIT" : "PURCHASE_CREDIT";
+      userTransactions.push({
+        id: Date.now() + Math.random(),
+        role: tx.role,
+        name: tx.name,
+        billNo: tx.billNo || "CHQ-BOUNCE",
+        type: reverseType,
+        amount: Number(tx.amount),
+        method: "Credit",
+        date: getLocalISODate(0),
+        notes: `Cheque Bounced Reversal (${tx.chequeNo || tx.chequeDate || ''})`,
+        img: ""
+      });
+    } else {
+      tx.chequeStatus = newStatus;
+    }
+
+    refreshDashboard();
+    renderPartiesTables();
+    searchPartyLedger();
+    await saveToServer();
   }
 
 </script>
