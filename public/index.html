@@ -523,6 +523,9 @@
                       <i class="fa-solid fa-file-import me-1"></i> Import Dues File (Smart Check)
                       <input type="file" id="importDuesInput" accept=".json" class="d-none" onchange="handleImportDuesFile(event)">
                     </label>
+                  <button type="button" class="btn btn-sm btn-outline-info fw-bold w-100 mt-2" onclick="openPasteDuesModal()">
+                    <i class="fa-solid fa-paste me-1"></i> Paste Dues JSON Text (Direct Import)
+                  </button>
                   </div>
                 </div>
               </div>
@@ -736,6 +739,24 @@
     <div style="background:#f8fafc; padding:10px 14px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e2e8f0;">
       <button type="button" class="btn btn-sm btn-secondary fw-bold" onclick="closeCustomEditModal()">Cancel</button>
       <button type="button" id="saveEditTxBtn" class="btn btn-sm btn-primary fw-bold" onclick="saveEditedTx()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal fade" id="pasteDuesModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-info text-white p-2 px-3">
+        <h6 class="modal-title fw-bold"><i class="fa-solid fa-paste me-1"></i> Paste SMART_POS_DUES_TRANSFER JSON</h6>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <textarea id="pasteDuesTextarea" class="form-control" rows="8" placeholder='{"fileType":"SMART_POS_DUES_TRANSFER","role":"Customer",...}'></textarea>
+        <button type="button" class="btn btn-primary w-100 fw-bold mt-2" onclick="processPastedDuesJson()">
+          <i class="fa-solid fa-magnifying-glass me-1"></i> Check Duplicates & Review Import
+        </button>
+      </div>
     </div>
   </div>
 </div>
@@ -2721,6 +2742,63 @@
       alert("Excel export error: " + err.message);
     }
   }
+
+  function openPasteDuesModal() {
+    document.getElementById("pasteDuesTextarea").value = "";
+    new bootstrap.Modal(document.getElementById("pasteDuesModal")).show();
+  }
+
+  function processPastedDuesJson() {
+    const rawText = document.getElementById("pasteDuesTextarea").value.trim();
+    if (!rawText) {
+      alert("Pehle JSON text paste karein!");
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(rawText);
+      if (parsed.fileType !== "SMART_POS_DUES_TRANSFER" || !Array.isArray(parsed.items) || !parsed.role) {
+        alert("Invalid format! Sirf SMART_POS_DUES_TRANSFER JSON paste karein.");
+        return;
+      }
+      if (parsed.items.length === 0) {
+        alert("Is JSON mein koi party record maujood nahi hai!");
+        return;
+      }
+
+      pendingImportRole = parsed.role;
+      pendingImportDuesData = parsed.items.map((item, idx) => {
+        const matches = findSimilarExistingParties(item.name, parsed.role);
+        return {
+          idx,
+          name: String(item.name || "").trim(),
+          phone: String(item.phone || "").trim(),
+          balance: Number(item.balance) || 0,
+          matches,
+          action: matches.length > 0 ? "SKIP" : "ADD_NEW",
+          targetExistingName: matches.length > 0 ? matches[0].name : ""
+        };
+      });
+
+      const modalEl = document.getElementById("pasteDuesModal");
+      const bsModal = bootstrap.Modal.getInstance(modalEl);
+      if (bsModal) bsModal.hide();
+
+      document.getElementById("importDuesSubtitle").innerText =
+        `${parsed.role} Dues from "${parsed.sourceBizName || 'External'}" (${parsed.exportedAt || ''}) — Total ${pendingImportDuesData.length} parties`;
+
+      const hasAnyDup = pendingImportDuesData.some(x => x.matches.length > 0);
+      const alertBox = document.getElementById("importDupAlertBox");
+      if (hasAnyDup) alertBox.classList.remove("d-none");
+      else alertBox.classList.add("d-none");
+
+      renderImportDuesReviewTable();
+      document.getElementById("importDuesOverlay").style.display = "flex";
+    } catch (err) {
+      alert("JSON syntax error: " + err.message);
+    }
+  }
+
 </script>
 </body>
 </html>
