@@ -497,6 +497,36 @@
             <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-excel text-success fa-2x mb-2"></i><button onclick="exportToExcel()" class="btn btn-sm btn-success fw-bold w-100">Excel Export</button></div></div>
             <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-pdf text-danger fa-2x mb-2"></i><button onclick="downloadAllDuesPDF('Customer')" class="btn btn-sm btn-danger fw-bold w-100">Customer Dues PDF</button></div></div>
             <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-pdf text-warning fa-2x mb-2"></i><button onclick="downloadAllDuesPDF('Supplier')" class="btn btn-sm btn-warning fw-bold w-100 text-dark">Supplier Dues PDF</button></div></div>
+
+            <!-- SMART DUES TRANSFER (CUSTOMER & SUPPLIER) -->
+            <div class="col-12">
+              <div class="card card-stat p-3 bg-white border border-info">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                  <div>
+                    <h6 class="fw-bold text-dark mb-0"><i class="fa-solid fa-right-left text-info me-2"></i>Smart Dues Transfer (Customer / Supplier File)</h6>
+                    <small class="text-muted">Sirf baqaya (dues) wali parties export karein ya doosre account ki file import karein (Duplicate warning ke sath).</small>
+                  </div>
+                </div>
+                <div class="row g-2 mt-1">
+                  <div class="col-12 col-md-4">
+                    <button onclick="exportRoleDuesFile('Customer')" class="btn btn-sm btn-outline-danger fw-bold w-100">
+                      <i class="fa-solid fa-file-export me-1"></i> Export Customer Dues File
+                    </button>
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <button onclick="exportRoleDuesFile('Supplier')" class="btn btn-sm btn-outline-warning text-dark fw-bold w-100">
+                      <i class="fa-solid fa-file-export me-1"></i> Export Supplier Dues File
+                    </button>
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <label class="btn btn-sm btn-info text-white fw-bold w-100 mb-0" style="cursor:pointer;">
+                      <i class="fa-solid fa-file-import me-1"></i> Import Dues File (Smart Check)
+                      <input type="file" id="importDuesInput" accept=".json" class="d-none" onchange="handleImportDuesFile(event)">
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
             
             <div class="col-12 col-md-6">
               <div class="card card-stat p-3 bg-white text-center border border-primary">
@@ -706,6 +736,44 @@
     <div style="background:#f8fafc; padding:10px 14px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e2e8f0;">
       <button type="button" class="btn btn-sm btn-secondary fw-bold" onclick="closeCustomEditModal()">Cancel</button>
       <button type="button" id="saveEditTxBtn" class="btn btn-sm btn-primary fw-bold" onclick="saveEditedTx()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT DUES DUPLICATE CHECK & REVIEW MODAL -->
+<div id="importDuesOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.65); z-index:9999; align-items:center; justify-content:center; padding:10px;">
+  <div style="background:#fff; width:100%; max-width:760px; max-height:90vh; display:flex; flex-direction:column; border-radius:10px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.3);">
+    <div style="background:#0f172a; color:#fff; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">
+      <div>
+        <strong style="font-size:15px;"><i class="fa-solid fa-shield-halved text-warning me-2"></i>Import Dues Verification & Duplicate Check</strong>
+        <div id="importDuesSubtitle" style="font-size:12px; color:#cbd5e1;"></div>
+      </div>
+      <button type="button" onclick="closeImportDuesModal()" style="background:none; border:none; color:#fff; font-size:24px; line-height:1; cursor:pointer;">&times;</button>
+    </div>
+    <div style="padding:12px 16px; overflow-y:auto; flex:1;">
+      <div id="importDupAlertBox" class="alert alert-warning py-2 px-3 mb-2 d-none" style="font-size:13px;">
+        <i class="fa-solid fa-triangle-exclamation me-1"></i> <strong>Khabardar!</strong> Niche yellow/red highlighted naam aapke account mein pehle se maujood hain (ya milte julte hain). Unhein default <strong>"Skip (Add Na Karein)"</strong> par set kiya gaya hai—aap har row ka faisla khud badal sakte hain.
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm table-bordered align-middle mb-0" style="font-size:13px;">
+          <thead class="table-dark text-center">
+            <tr>
+              <th>File Party Name</th>
+              <th>Balance (Rs)</th>
+              <th>Account Match Warning</th>
+              <th>Action (Kya Karein?)</th>
+            </tr>
+          </thead>
+          <tbody id="importDuesReviewBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div style="background:#f8fafc; padding:10px 16px; display:flex; justify-content:space-between; align-items:center; border-top:1px solid #e2e8f0;">
+      <small class="text-muted fw-bold" id="importSummaryCount"></small>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-secondary fw-bold" onclick="closeImportDuesModal()">Cancel</button>
+        <button type="button" id="confirmImportDuesBtn" class="btn btn-sm btn-success fw-bold" onclick="confirmImportDues()"><i class="fa-solid fa-check me-1"></i> Confirm & Import Selected</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2268,6 +2336,284 @@
     }
 
     doc.save(type + "_Dues_Report.pdf");
+  }
+
+  let pendingImportDuesData = [];
+  let pendingImportRole = "Customer";
+
+  function exportRoleDuesFile(role) {
+    let duesMap = {};
+    (userParties || []).filter(p => p.role === role).forEach(p => {
+      duesMap[p.name] = { name: p.name, phone: p.phone || "", total: 0, paid: 0 };
+    });
+
+    (userTransactions || []).forEach(t => {
+      if (t.role === role) {
+        if (!duesMap[t.name]) duesMap[t.name] = { name: t.name, phone: "", total: 0, paid: 0 };
+        const amt = Number(t.amount) || 0;
+        if (role === "Customer") {
+          if (t.type === "SALE_CREDIT") duesMap[t.name].total += amt;
+          else if (t.type === "PAYMENT_REC" || t.type === "SALE_RETURN") duesMap[t.name].paid += amt;
+        } else {
+          if (t.type === "PURCHASE_CREDIT") duesMap[t.name].total += amt;
+          else if (t.type === "PAYMENT_PAID" || t.type === "PURCHASE_RETURN") duesMap[t.name].paid += amt;
+        }
+      }
+    });
+
+    const items = [];
+    for (let k in duesMap) {
+      const net = duesMap[k].total - duesMap[k].paid;
+      if (net !== 0) {
+        items.push({
+          name: duesMap[k].name,
+          phone: duesMap[k].phone,
+          balance: net
+        });
+      }
+    }
+
+    if (items.length === 0) {
+      alert("Export karne ke liye koi baqaya (dues) wala " + role + " maujood nahi hai!");
+      return;
+    }
+
+    const payload = {
+      fileType: "SMART_POS_DUES_TRANSFER",
+      role: role,
+      sourceBizName: (currentUser && currentUser.bizName) ? currentUser.bizName : "POS",
+      exportedAt: new Date().toISOString().split('T')[0],
+      items: items
+    };
+
+    const bizSlug = payload.sourceBizName.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const fileName = `${bizSlug}_${role}_Dues_${payload.exportedAt}.json`;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 200);
+  }
+
+  function findSimilarExistingParties(incomingName, role) {
+    const clean = str => str.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+    const stopWords = new Set(['fabrics', 'fabric', 'cloth', 'clothes', 'textile', 'textiles', 'traders', 'trader', 'store', 'stores', 'garments', 'collection', 'fashion', 'house', 'center', 'centre', 'co', 'company', 'and', 'the', 'enterprise', 'enterprises', 'brothers', 'sons', 'mart', 'shop']);
+    const getCoreTokens = str => clean(str).split(' ').filter(w => w.length >= 2 && !stopWords.has(w));
+
+    const inClean = clean(incomingName);
+    const inCompact = inClean.replace(/\s+/g, '');
+    const inTokens = getCoreTokens(incomingName);
+
+    const existingNames = new Set();
+    (userParties || []).filter(p => p.role === role).forEach(p => existingNames.add(p.name));
+    (userTransactions || []).filter(t => t.role === role).forEach(t => existingNames.add(t.name));
+
+    const matches = [];
+    existingNames.forEach(exName => {
+      const exClean = clean(exName);
+      const exCompact = exClean.replace(/\s+/g, '');
+      const exTokens = getCoreTokens(exName);
+
+      if (inCompact === exCompact) {
+        matches.push({ name: exName, exact: true });
+        return;
+      }
+
+      if (inCompact.length >= 4 && exCompact.length >= 4 && (inCompact.includes(exCompact) || exCompact.includes(inCompact))) {
+        matches.push({ name: exName, exact: false });
+        return;
+      }
+
+      const sharedToken = inTokens.some(t1 => exTokens.some(t2 => t1 === t2 || (t1.length >= 4 && t2.length >= 4 && (t1.startsWith(t2) || t2.startsWith(t1)))));
+      if (sharedToken) {
+        matches.push({ name: exName, exact: false });
+      }
+    });
+
+    return matches;
+  }
+
+  function handleImportDuesFile(event) {
+    const file = event.target.files[0];
+    event.target.value = "";
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const parsed = JSON.parse(e.target.result);
+        if (parsed.fileType !== "SMART_POS_DUES_TRANSFER" || !Array.isArray(parsed.items) || !parsed.role) {
+          alert("Invalid Dues File! Sirf 'Export Customer/Supplier Dues File' se nikali gayi file hi import karein.");
+          return;
+        }
+
+        if (parsed.items.length === 0) {
+          alert("Is file mein koi party record maujood nahi hai!");
+          return;
+        }
+
+        pendingImportRole = parsed.role;
+        pendingImportDuesData = parsed.items.map((item, idx) => {
+          const matches = findSimilarExistingParties(item.name, parsed.role);
+          return {
+            idx,
+            name: String(item.name || "").trim(),
+            phone: String(item.phone || "").trim(),
+            balance: Number(item.balance) || 0,
+            matches,
+            action: matches.length > 0 ? "SKIP" : "ADD_NEW",
+            targetExistingName: matches.length > 0 ? matches[0].name : ""
+          };
+        });
+
+        document.getElementById("importDuesSubtitle").innerText = `${parsed.role} Dues File from "${parsed.sourceBizName || 'External'}" (${parsed.exportedAt || ''}) — Total ${pendingImportDuesData.length} parties`;
+
+        const hasAnyDup = pendingImportDuesData.some(x => x.matches.length > 0);
+        const alertBox = document.getElementById("importDupAlertBox");
+        if (hasAnyDup) alertBox.classList.remove("d-none");
+        else alertBox.classList.add("d-none");
+
+        renderImportDuesReviewTable();
+        document.getElementById("importDuesOverlay").style.display = "flex";
+      } catch (err) {
+        alert("File read karne mein error aayi: " + err.message);
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function renderImportDuesReviewTable() {
+    const tbody = document.getElementById("importDuesReviewBody");
+    let html = "";
+
+    pendingImportDuesData.forEach((row, i) => {
+      const hasMatch = row.matches.length > 0;
+      const isExact = row.matches.some(m => m.exact);
+      const rowBg = isExact ? "table-danger" : (hasMatch ? "table-warning" : "");
+
+      let matchHtml = `<span class="badge bg-success"><i class="fa-solid fa-check me-1"></i> New (No Duplicate)</span>`;
+      if (hasMatch) {
+        const namesList = row.matches.map(m => `<strong>${m.name}</strong>${m.exact ? ' (Exact)' : ' (Similar)'}`).join(", ");
+        matchHtml = `<span class="text-danger fw-bold" style="font-size:12px;"><i class="fa-solid fa-triangle-exclamation me-1"></i> Pehle se maujood: ${namesList}</span>`;
+      }
+
+      let mergeOptions = "";
+      if (hasMatch) {
+        row.matches.forEach(m => {
+          const safeTarget = m.name.replace(/"/g, '&quot;');
+          mergeOptions += `<option value="MERGE::${safeTarget}" ${row.action === 'MERGE' && row.targetExistingName === m.name ? 'selected' : ''}>Merge into "${m.name}"</option>`;
+        });
+      }
+
+      html += `
+        <tr class="${rowBg}">
+          <td class="fw-bold">${row.name}${row.phone ? `<br><small class="text-muted">${row.phone}</small>` : ''}</td>
+          <td class="text-end fw-bold">Rs. ${row.balance.toLocaleString()}</td>
+          <td>${matchHtml}</td>
+          <td>
+            <select class="form-select form-select-sm fw-bold" onchange="updateImportRowDecision(${i}, this.value)">
+              <option value="SKIP" ${row.action === 'SKIP' ? 'selected' : ''}>Skip (Add Na Karein)</option>
+              <option value="ADD_NEW" ${row.action === 'ADD_NEW' ? 'selected' : ''}>Add as New Party</option>
+              ${mergeOptions}
+            </select>
+          </td>
+        </tr>
+      `;
+    });
+
+    tbody.innerHTML = html;
+    updateImportSummaryCounter();
+  }
+
+  function updateImportRowDecision(idx, val) {
+    if (val.startsWith("MERGE::")) {
+      pendingImportDuesData[idx].action = "MERGE";
+      pendingImportDuesData[idx].targetExistingName = val.slice(7);
+    } else {
+      pendingImportDuesData[idx].action = val;
+    }
+    updateImportSummaryCounter();
+  }
+
+  function updateImportSummaryCounter() {
+    const addCount = pendingImportDuesData.filter(r => r.action === "ADD_NEW").length;
+    const mergeCount = pendingImportDuesData.filter(r => r.action === "MERGE").length;
+    const skipCount = pendingImportDuesData.filter(r => r.action === "SKIP").length;
+    document.getElementById("importSummaryCount").innerText = `New: ${addCount} | Merge: ${mergeCount} | Skip: ${skipCount}`;
+  }
+
+  function closeImportDuesModal() {
+    document.getElementById("importDuesOverlay").style.display = "none";
+    pendingImportDuesData = [];
+  }
+
+  async function confirmImportDues() {
+    const toProcess = pendingImportDuesData.filter(r => r.action !== "SKIP" && r.balance !== 0);
+    if (toProcess.length === 0) {
+      alert("Koi party import karne ke liye select nahi ki gayi (sab Skip hain).");
+      closeImportDuesModal();
+      return;
+    }
+
+    const btn = document.getElementById("confirmImportDuesBtn");
+    btn.disabled = true;
+
+    const today = new Date().toISOString().split('T')[0];
+    const role = pendingImportRole;
+
+    toProcess.forEach((item, idx) => {
+      const targetName = (item.action === "MERGE" && item.targetExistingName) ? item.targetExistingName : item.name;
+
+      if (!userParties.find(p => p.role === role && p.name.toLowerCase() === targetName.toLowerCase())) {
+        userParties.push({
+          id: Date.now() + idx,
+          role: role,
+          name: targetName,
+          phone: item.phone || ""
+        });
+      }
+
+      const absAmt = Math.abs(item.balance);
+      let txType = "";
+      let txMethod = "Credit";
+      if (role === "Customer") {
+        txType = item.balance > 0 ? "SALE_CREDIT" : "PAYMENT_REC";
+        if (item.balance < 0) txMethod = "Cash";
+      } else {
+        txType = item.balance > 0 ? "PURCHASE_CREDIT" : "PAYMENT_PAID";
+        if (item.balance < 0) txMethod = "Cash";
+      }
+
+      userTransactions.push({
+        id: Date.now() + 1000 + idx,
+        role: role,
+        name: targetName,
+        billNo: "IMPORT-DUES",
+        type: txType,
+        amount: absAmt,
+        method: txMethod,
+        date: today,
+        notes: item.action === "MERGE" ? `Merged Dues Import (${item.name})` : "Imported Opening Dues",
+        img: ""
+      });
+    });
+
+    closeImportDuesModal();
+    refreshDashboard();
+    renderPartiesTables();
+    updateLedgerSuggestions();
+    renderAllPartiesLedgerList();
+    searchPartyLedger();
+    await saveToServer();
+
+    btn.disabled = false;
+    alert(`${toProcess.length} ${role}(s) ka baqaya successfully import ho gaya hai!`);
   }
 
   function exportToExcel() {
