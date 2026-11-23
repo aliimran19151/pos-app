@@ -311,39 +311,30 @@
     <div class="col-md-9 col-lg-10 p-3 p-md-4">
       <div class="tab-content">
         <div class="tab-pane fade show active" id="tabDashboard">
-          <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-            <div>
-              <h4 class="fw-bold mb-0" id="dashWelcomeTitle">Dashboard</h4>
-              <small class="text-primary fw-bold" id="dashLiveDateDisplay"><i class="fa-regular fa-calendar-days me-1"></i> Today</small>
-            </div>
-            <button class="btn btn-primary fw-bold btn-sm btn-md-normal" onclick="openEntryModal()"><i class="fa-solid fa-plus-circle me-1"></i> Multi-Item Entry</button>
+          <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+            <h5 class="fw-bold mb-0 text-truncate" id="dashWelcomeTitle">Dashboard</h5>
+            <button class="btn btn-primary fw-bold btn-sm text-nowrap" onclick="openEntryModal()"><i class="fa-solid fa-plus-circle me-1"></i> Multi-Item Entry</button>
           </div>
 
-          <div class="card card-stat p-2 px-3 bg-white mb-3">
-            <div class="row g-2 align-items-center">
-              <div class="col-12 col-md-4">
-                <label class="form-label small fw-bold text-secondary mb-1"><i class="fa-solid fa-clock-rotate-left me-1"></i> Period / Time Range</label>
-                <select id="dashPeriodFilter" class="form-select form-select-sm fw-bold border-primary" onchange="handleDashPeriodChange()">
-                  <option value="TODAY" selected>Today (Aaj)</option>
-                  <option value="YESTERDAY">Yesterday (Kal)</option>
-                  <option value="7">Last 7 Days</option>
-                  <option value="30">Last 30 Days</option>
-                  <option value="90">Last 90 Days</option>
-                  <option value="LIFETIME">Lifetime (All Time)</option>
-                  <option value="CUSTOM">Custom (Kab Se Kab Tak)</option>
-                </select>
-              </div>
-              <div class="col-6 col-md-3" id="dashFromBox">
-                <label class="form-label small fw-bold text-secondary mb-1">Kab Se (From)</label>
-                <input type="date" id="dashFromDate" class="form-control form-control-sm" onchange="setCustomDashRange()">
-              </div>
-              <div class="col-6 col-md-3" id="dashToBox">
-                <label class="form-label small fw-bold text-secondary mb-1">Kab Tak (To)</label>
-                <input type="date" id="dashToDate" class="form-control form-control-sm" onchange="setCustomDashRange()">
-              </div>
-              <div class="col-12 col-md-2 text-md-end">
-                <span class="badge bg-light text-dark border w-100 py-2" id="dashActiveRangeBadge" style="font-size:11px;">Today</span>
-              </div>
+          <div class="d-flex justify-content-between align-items-center mb-2 gap-2">
+            <small class="text-primary fw-bold text-nowrap" id="dashLiveDateDisplay"><i class="fa-regular fa-calendar-days me-1"></i> Today</small>
+            <select id="dashPeriodFilter" class="form-select form-select-sm fw-bold border-primary py-1" style="width:auto; max-width:165px; font-size:12px;" onchange="handleDashPeriodChange()">
+              <option value="TODAY" selected>Today</option>
+              <option value="YESTERDAY">Yesterday</option>
+              <option value="7">Last 7 Days</option>
+              <option value="30">Last 30 Days</option>
+              <option value="90">Last 90 Days</option>
+              <option value="LIFETIME">Lifetime</option>
+              <option value="CUSTOM">Custom Date</option>
+            </select>
+          </div>
+
+          <div id="dashCustomDateRow" class="row g-1 mb-2 d-none">
+            <div class="col-6">
+              <input type="date" id="dashFromDate" class="form-control form-control-sm" style="font-size:12px;" onchange="setCustomDashRange()">
+            </div>
+            <div class="col-6">
+              <input type="date" id="dashToDate" class="form-control form-control-sm" style="font-size:12px;" onchange="setCustomDashRange()">
             </div>
           </div>
 
@@ -1857,35 +1848,34 @@
     const sel = document.getElementById("dashPeriodFilter");
     const fromEl = document.getElementById("dashFromDate");
     const toEl = document.getElementById("dashToDate");
-    const badgeEl = document.getElementById("dashActiveRangeBadge");
+    const customRow = document.getElementById("dashCustomDateRow");
     if (!sel) return refreshDashboard();
 
     const val = sel.value;
     const todayStr = getLocalISODate(0);
 
+    if (customRow) {
+      if (val === "CUSTOM") customRow.classList.remove("d-none");
+      else customRow.classList.add("d-none");
+    }
+
     if (val === "TODAY") {
       fromEl.value = todayStr;
       toEl.value = todayStr;
-      if (badgeEl) badgeEl.innerText = "Today (" + todayStr + ")";
     } else if (val === "YESTERDAY") {
       const yestStr = getLocalISODate(-1);
       fromEl.value = yestStr;
       toEl.value = yestStr;
-      if (badgeEl) badgeEl.innerText = "Yesterday (" + yestStr + ")";
     } else if (val === "7" || val === "30" || val === "90") {
       const days = Number(val);
-      const startStr = getLocalISODate(-(days - 1));
-      fromEl.value = startStr;
+      fromEl.value = getLocalISODate(-(days - 1));
       toEl.value = todayStr;
-      if (badgeEl) badgeEl.innerText = `Last ${days} Days`;
     } else if (val === "LIFETIME") {
       fromEl.value = "";
       toEl.value = "";
-      if (badgeEl) badgeEl.innerText = "Lifetime (All)";
     } else if (val === "CUSTOM") {
       if (!fromEl.value) fromEl.value = todayStr;
       if (!toEl.value) toEl.value = todayStr;
-      if (badgeEl) badgeEl.innerText = `${fromEl.value} to ${toEl.value}`;
     }
 
     refreshDashboard();
