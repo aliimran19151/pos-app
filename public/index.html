@@ -411,8 +411,11 @@
           </div>
 
           <div class="card card-stat p-2 p-md-3 bg-white">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="fw-bold mb-0" id="selectedPartyName">Select a Party</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <h5 class="fw-bold mb-0" id="selectedPartyName">Select a Party</h5>
+                <button type="button" id="editSelectedPartyBtn" class="btn btn-sm btn-outline-warning text-dark fw-bold d-none" onclick="editCurrentLedgerParty()"><i class="fa-solid fa-pen me-1"></i> Edit Name</button>
+              </div>
               <h4 class="fw-bold text-danger mb-0" id="selectedPartyBalance">Rs. 0</h4>
             </div>
             <div class="table-responsive">
@@ -795,6 +798,34 @@
         <button type="button" class="btn btn-sm btn-secondary fw-bold" onclick="closeImportDuesModal()">Cancel</button>
         <button type="button" id="confirmImportDuesBtn" class="btn btn-sm btn-success fw-bold" onclick="confirmImportDues()"><i class="fa-solid fa-check me-1"></i> Confirm & Import Selected</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- EDIT PARTY NAME & PHONE OVERLAY -->
+<div id="editPartyOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:9999; align-items:center; justify-content:center; padding:12px;">
+  <div style="background:#fff; width:100%; max-width:400px; border-radius:10px; overflow:hidden; box-shadow:0 8px 24px rgba(0,0,0,0.25);">
+    <div style="background:#1e293b; color:#fff; padding:10px 14px; display:flex; justify-content:space-between; align-items:center;">
+      <strong style="font-size:15px;"><i class="fa-solid fa-user-pen me-1"></i> Edit <span id="editPartyRoleLabel">Party</span> Details</strong>
+      <button type="button" onclick="closeEditPartyModal()" style="background:none; border:none; color:#fff; font-size:22px; line-height:1; cursor:pointer;">&times;</button>
+    </div>
+    <div style="padding:14px;">
+      <input type="hidden" id="editPartyOldName">
+      <input type="hidden" id="editPartyRole">
+      <div class="mb-2">
+        <label class="form-label small fw-bold mb-1">Party Name</label>
+        <input type="text" id="editPartyNewName" class="form-control" style="font-size:16px;" required>
+      </div>
+      <div class="mb-2">
+        <label class="form-label small fw-bold mb-1">Phone Number</label>
+        <input type="text" id="editPartyNewPhone" class="form-control" style="font-size:16px;" placeholder="03001234567">
+      </div>
+      <small class="text-muted d-block mt-1"><i class="fa-solid fa-circle-info me-1"></i> Naam tabdeel karne se is party ki saari purani entries bhi naye naam par update ho jayengi.</small>
+    </div>
+    <div style="background:#f8fafc; padding:10px 14px; display:flex; justify-content:flex-end; gap:8px; border-top:1px solid #e2e8f0;">
+      <button type="button" class="btn btn-sm btn-secondary fw-bold" onclick="closeEditPartyModal()">Cancel</button>
+      <button type="button" id="saveEditPartyBtn" class="btn btn-sm btn-primary fw-bold" onclick="saveEditedParty()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1775,8 +1806,9 @@
           <td>${c}</td>
           <td>${custMap[c].phone}</td>
           <td class="fw-bold text-danger">Rs. ${net.toLocaleString()}</td>
-          <td>
+          <td class="text-nowrap">
             <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button>
+            <button class="btn btn-sm btn-outline-warning text-dark me-1 fw-bold" title="Edit Name/Phone" onclick="openEditPartyModal('${safeC}', 'Customer')"><i class="fa-solid fa-pen"></i></button>
             <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteParty('${safeC}', 'Customer')"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
@@ -1791,8 +1823,9 @@
           <td>${s}</td>
           <td>${suppMap[s].phone}</td>
           <td class="fw-bold text-warning">Rs. ${net.toLocaleString()}</td>
-          <td>
+          <td class="text-nowrap">
             <button class="btn btn-sm btn-outline-primary me-1 fw-bold" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button>
+            <button class="btn btn-sm btn-outline-warning text-dark me-1 fw-bold" title="Edit Name/Phone" onclick="openEditPartyModal('${safeS}', 'Supplier')"><i class="fa-solid fa-pen"></i></button>
             <button class="btn btn-sm btn-outline-danger fw-bold" onclick="deleteParty('${safeS}', 'Supplier')"><i class="fa-solid fa-trash"></i></button>
           </td>
         </tr>
@@ -1922,6 +1955,7 @@
     if (!query) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-muted">Search customer/supplier above.</td></tr>`;
       document.getElementById("selectedPartyName").innerText = "Select a Party";
+      if(document.getElementById("editSelectedPartyBtn")) document.getElementById("editSelectedPartyBtn").classList.add("d-none");
       document.getElementById("selectedPartyBalance").innerText = "Rs. 0";
       return;
     }
@@ -1950,6 +1984,7 @@
     if (!exactMatchName) {
       tbody.innerHTML = `<tr><td colspan="6" class="text-muted">No matching party found.</td></tr>`;
       document.getElementById("selectedPartyName").innerText = "Select a Party";
+      if(document.getElementById("editSelectedPartyBtn")) document.getElementById("editSelectedPartyBtn").classList.add("d-none");
       document.getElementById("selectedPartyBalance").innerText = "Rs. 0";
       return;
     }
@@ -1963,6 +1998,7 @@
     });
 
     document.getElementById("selectedPartyName").innerText = exactMatchName;
+    if(document.getElementById("editSelectedPartyBtn")) document.getElementById("editSelectedPartyBtn").classList.remove("d-none");
 
     let netBalance = 0, rows = "";
     filtered.forEach(t => {
@@ -2309,8 +2345,6 @@
           sr++,
           name,
           duesMap[name].phone,
-          "Rs. " + duesMap[name].total.toLocaleString(),
-          "Rs. " + duesMap[name].paid.toLocaleString(),
           "Rs. " + net.toLocaleString()
         ]);
       }
@@ -2337,21 +2371,19 @@
     if (typeof doc.autoTable === 'function') {
       doc.autoTable({
         startY: 38,
-        head: [['#', type + ' Name', 'Phone', 'Total Udhar', 'Total Jama', 'Net Balance']],
+        head: [['#', type + ' Name', 'Phone', 'Net Balance']],
         body: tableBody,
-        foot: [['', 'GRAND TOTAL', '', '', '', 'Rs. ' + grandTotal.toLocaleString()]],
+        foot: [['', 'GRAND TOTAL', '', 'Rs. ' + grandTotal.toLocaleString()]],
         theme: 'grid',
-        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 8.5, halign: 'center' },
-        footStyles: { fillColor: [239, 246, 255], textColor: [30, 58, 138], fontStyle: 'bold', fontSize: 9.5, halign: 'right' },
-        styles: { fontSize: 8.5, cellPadding: 3, lineColor: [203, 213, 225], lineWidth: 0.2 },
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9, halign: 'center' },
+        footStyles: { fillColor: [239, 246, 255], textColor: [30, 58, 138], fontStyle: 'bold', fontSize: 10, halign: 'right' },
+        styles: { fontSize: 9, cellPadding: 3.5, lineColor: [203, 213, 225], lineWidth: 0.2 },
         alternateRowStyles: { fillColor: [248, 250, 252] },
         columnStyles: {
-          0: { cellWidth: 12, halign: 'center' },
-          1: { cellWidth: 54, fontStyle: 'bold' },
-          2: { cellWidth: 30, halign: 'center' },
-          3: { cellWidth: 28, halign: 'right' },
-          4: { cellWidth: 28, halign: 'right' },
-          5: { cellWidth: 30, halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] }
+          0: { cellWidth: 14, halign: 'center' },
+          1: { cellWidth: 92, fontStyle: 'bold' },
+          2: { cellWidth: 36, halign: 'center' },
+          3: { cellWidth: 40, halign: 'right', fontStyle: 'bold', textColor: [185, 28, 28] }
         }
       });
     }
@@ -2797,6 +2829,92 @@
     } catch (err) {
       alert("JSON syntax error: " + err.message);
     }
+  }
+
+
+  function openEditPartyModal(name, role) {
+    const pObj = userParties.find(p => p.name.toLowerCase() === name.toLowerCase() && p.role === role);
+    document.getElementById("editPartyOldName").value = name;
+    document.getElementById("editPartyRole").value = role;
+    document.getElementById("editPartyRoleLabel").innerText = role;
+    document.getElementById("editPartyNewName").value = name;
+    document.getElementById("editPartyNewPhone").value = (pObj && pObj.phone) ? pObj.phone : "";
+    document.getElementById("editPartyOverlay").style.display = "flex";
+  }
+
+  function editCurrentLedgerParty() {
+    const currentName = document.getElementById("selectedPartyName").innerText;
+    if (!currentName || currentName === "Select a Party") return;
+    let role = document.getElementById("partyRoleFilter").value;
+    if (role === "ALL") {
+      const pObj = userParties.find(p => p.name.toLowerCase() === currentName.toLowerCase());
+      const tObj = userTransactions.find(t => t.name.toLowerCase() === currentName.toLowerCase());
+      role = pObj ? pObj.role : (tObj ? tObj.role : "Customer");
+    }
+    openEditPartyModal(currentName, role);
+  }
+
+  function closeEditPartyModal() {
+    document.getElementById("editPartyOverlay").style.display = "none";
+  }
+
+  async function saveEditedParty() {
+    const oldName = document.getElementById("editPartyOldName").value;
+    const role = document.getElementById("editPartyRole").value;
+    const newName = document.getElementById("editPartyNewName").value.trim().replace(/\s+/g, ' ');
+    const newPhone = document.getElementById("editPartyNewPhone").value.trim();
+
+    if (!newName) {
+      alert("Party ka naam khali nahi ho sakta!");
+      return;
+    }
+
+    const duplicate = userParties.find(p =>
+      p.role === role &&
+      p.name.toLowerCase() === newName.toLowerCase() &&
+      p.name.toLowerCase() !== oldName.toLowerCase()
+    );
+    if (duplicate) {
+      alert(`"${duplicate.name}" ke naam se ek ${role} pehle se maujood hai! Koi aur naam rakhein.`);
+      return;
+    }
+
+    const btn = document.getElementById("saveEditPartyBtn");
+    btn.disabled = true;
+
+    let partyFound = false;
+    userParties.forEach(p => {
+      if (p.role === role && p.name.toLowerCase() === oldName.toLowerCase()) {
+        p.name = newName;
+        p.phone = newPhone;
+        partyFound = true;
+      }
+    });
+    if (!partyFound) {
+      userParties.push({ id: Date.now(), role, name: newName, phone: newPhone });
+    }
+
+    userTransactions.forEach(t => {
+      if (t.role === role && t.name.toLowerCase() === oldName.toLowerCase()) {
+        t.name = newName;
+      }
+    });
+
+    closeEditPartyModal();
+
+    const searchInput = document.getElementById("partySearchInput");
+    if (searchInput && searchInput.value.trim().toLowerCase() === oldName.toLowerCase()) {
+      searchInput.value = newName;
+    }
+
+    refreshDashboard();
+    renderPartiesTables();
+    updateLedgerSuggestions();
+    renderAllPartiesLedgerList();
+    searchPartyLedger();
+    await saveToServer();
+
+    btn.disabled = false;
   }
 
 </script>
