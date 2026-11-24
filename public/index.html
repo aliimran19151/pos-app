@@ -2608,15 +2608,20 @@
       });
     }
 
-    const finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 20 : 250;
-    if (finalY < 275) {
-      doc.setDrawColor(148, 163, 184);
-      doc.line(14, finalY, 68, finalY);
-      doc.line(142, finalY, 196, finalY);
-      doc.setFontSize(8);
-      doc.setTextColor(100, 116, 139);
-      doc.text("Customer / Party Signature", 14, finalY + 5);
-      doc.text("Authorized Stamp & Signature", 196, finalY + 5, { align: 'right' });
+    let finalY = (doc.lastAutoTable && doc.lastAutoTable.finalY) ? doc.lastAutoTable.finalY + 22 : 250;
+    if (finalY >= 275) {
+      doc.addPage();
+      finalY = 34;
+    }
+    doc.setDrawColor(148, 163, 184);
+    doc.line(14, finalY, 68, finalY);
+    doc.line(142, finalY, 196, finalY);
+    doc.setFontSize(8);
+    doc.setTextColor(100, 116, 139);
+    doc.text("Customer / Party Signature", 14, finalY + 5);
+    doc.text("Authorized Stamp & Signature", 196, finalY + 5, { align: 'right' });
+    if (typeof drawShopStampOnDoc === 'function') {
+      drawShopStampOnDoc(doc, 136, finalY - 22, 60, 22);
     }
 
     doc.save(partyName.replace(/\s+/g, '_') + "_Ledger.pdf");
@@ -3786,7 +3791,7 @@
         const d = imgd.data;
         for (let i = 0; i < d.length; i += 4) {
           const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
-          if (avg > 165) { d[i + 3] = 0; }
+          if (avg > 195) { d[i + 3] = 0; }
           else { d[i] = 25; d[i + 1] = 35; d[i + 2] = 55; }
         }
         ctx.putImageData(imgd, 0, 0);
@@ -3805,24 +3810,16 @@
   }
   window.addEventListener('load', () => {
     setTimeout(loadShopStampUI, 1500);
-    if (window.jspdf && window.jspdf.jsPDF && !window.jspdf.jsPDF.prototype._stampHooked) {
-      const origSave = window.jspdf.jsPDF.prototype.save;
-      window.jspdf.jsPDF.prototype.save = function(...args) {
-        try {
-          const cfg = getActiveShopStampConfig();
-          if (cfg && cfg.enabled && cfg.imgData) {
-            const pageCount = this.internal.getNumberOfPages();
-            this.setPage(pageCount);
-            const pageW = this.internal.pageSize.getWidth();
-            const pageH = this.internal.pageSize.getHeight();
-            const stampW = 54, stampH = 21;
-            this.addImage(cfg.imgData, 'PNG', pageW - stampW - 14, pageH - stampH - 14, stampW, stampH);
-          }
-        } catch (err) {}
-        return origSave.apply(this, args);
-      };
-      window.jspdf.jsPDF.prototype._stampHooked = true;
-    }
+    window.drawShopStampOnDoc = function(doc, x, y, w, h) {
+      try {
+        const cfg = getActiveShopStampConfig();
+        if (cfg && cfg.enabled && cfg.imgData) {
+          doc.addImage(cfg.imgData, 'PNG', x, y, w || 60, h || 22, undefined, 'FAST');
+        }
+      } catch (err) {
+        console.warn('Stamp draw error:', err);
+      }
+    };
   });
 </script>
 
