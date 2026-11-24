@@ -3735,18 +3735,35 @@
       }
     }
   }
-  function loadShopStampUI() {
+  let _stampSyncedFromCloud = false;
+  function syncShopStampFromCloud(forcePushLocal) {
     try {
-      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
-        db.collection('users').doc(currentUser.uid).get().then(doc => {
-          if (doc.exists && doc.data().shopStampConfig) {
-            try { localStorage.setItem(getStampStorageKey(), JSON.stringify(doc.data().shopStampConfig)); } catch (e) {}
-            applyStampConfigToDOM(doc.data().shopStampConfig);
-          }
-        }).catch(() => {});
-      }
-    } catch (e) {}
+      if (typeof db === 'undefined' || typeof currentUser === 'undefined' || !currentUser || !currentUser.uid) return false;
+      db.collection('users').doc(currentUser.uid).get().then(doc => {
+        const cloudCfg = (doc.exists && doc.data().shopStampConfig) ? doc.data().shopStampConfig : null;
+        const localCfg = getActiveShopStampConfig();
+        if (cloudCfg && (cloudCfg.imgData || cloudCfg.line1)) {
+          try { localStorage.setItem(getStampStorageKey(), JSON.stringify(cloudCfg)); } catch (e) {}
+          applyStampConfigToDOM(cloudCfg);
+        } else if (forcePushLocal && localCfg && (localCfg.imgData || localCfg.line1)) {
+          // If this phone already has the stamp saved locally, push it up to Firebase so all other devices get it!
+          db.collection('users').doc(currentUser.uid).set({ shopStampConfig: localCfg }, { merge: true }).catch(() => {});
+        }
+      }).catch(() => {});
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  function loadShopStampUI() {
     applyStampConfigToDOM(getActiveShopStampConfig());
+    if (!syncShopStampFromCloud(true)) {
+      let tries = 0;
+      const timer = setInterval(() => {
+        tries++;
+        if (syncShopStampFromCloud(true) || tries > 15) clearInterval(timer);
+      }, 1000);
+    }
   }
   function persistStampToFirebaseAndLocal(cfg) {
     try { localStorage.setItem(getStampStorageKey(), JSON.stringify(cfg)); } catch (e) {}
@@ -3781,7 +3798,7 @@
       const im = new Image();
       im.onload = function() {
         const canvas = document.createElement('canvas');
-        const maxW = 520;
+        const maxW = 400;
         const scale = Math.min(1, maxW / im.width);
         canvas.width = Math.round(im.width * scale);
         canvas.height = Math.round(im.height * scale);
