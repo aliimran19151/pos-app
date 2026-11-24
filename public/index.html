@@ -315,34 +315,34 @@
       <div class="collapse navbar-collapse mt-2" id="mobileMenu">
         <div class="nav flex-column" role="tablist">
           <a class="mobile-nav-link active" data-bs-toggle="pill" data-bs-target="#tabDashboard" onclick="closeMobileMenu()"><i class="fa-solid fa-chart-line me-2"></i> POS Dashboard</a>
-          <div class="nav-category-group">
-          <a class="mobile-nav-link d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="toggleSidebarSubMenu('custSubMenu_1', this)">
-            <span><i class="fa-solid fa-users me-2"></i> Customers</span>
-            <i class="fa-solid fa-chevron-down small sub-arrow"></i>
-          </a>
-          <div id="custSubMenu_1" class="ps-3 ms-2 border-start border-secondary d-none">
-            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabCustomers" onclick="closeMobileMenu();">
-              <i class="fa-solid fa-address-book me-2"></i> Customer List
-            </a>
-            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabCustomerEntries" onclick="closeMobileMenu(); renderPartyEntries('customer');">
-              <i class="fa-solid fa-receipt me-2"></i> Customer Entries
-            </a>
+          <div class="mb-1">
+            <button type="button" class="mobile-nav-link w-100 border-0 bg-transparent d-flex justify-content-between align-items-center text-start" onclick="toggleSubNav('mobCustSub', 'mobCustArr')">
+              <span><i class="fa-solid fa-users me-2"></i> Customers</span>
+              <i id="mobCustArr" class="fa-solid fa-chevron-down small"></i>
+            </button>
+            <div id="mobCustSub" style="display:none; padding-left:18px; border-left:2px solid #475569; margin-left:12px;">
+              <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabCustomers" onclick="closeMobileMenu()">
+                <i class="fa-solid fa-address-book me-2"></i> Customer List
+              </a>
+              <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabCustomerEntries" onclick="closeMobileMenu(); renderPartyEntries('customer');">
+                <i class="fa-solid fa-receipt me-2"></i> Customer Entries
+              </a>
+            </div>
           </div>
-        </div>
-          <div class="nav-category-group">
-          <a class="mobile-nav-link d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="toggleSidebarSubMenu('suppSubMenu_1', this)">
-            <span><i class="fa-solid fa-truck-field me-2"></i> Suppliers</span>
-            <i class="fa-solid fa-chevron-down small sub-arrow"></i>
-          </a>
-          <div id="suppSubMenu_1" class="ps-3 ms-2 border-start border-secondary d-none">
-            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabSuppliers" onclick="closeMobileMenu();">
-              <i class="fa-solid fa-list-ul me-2"></i> Supplier List
-            </a>
-            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabSupplierEntries" onclick="closeMobileMenu(); renderPartyEntries('supplier');">
-              <i class="fa-solid fa-receipt me-2"></i> Supplier Entries
-            </a>
+          <div class="mb-1">
+            <button type="button" class="mobile-nav-link w-100 border-0 bg-transparent d-flex justify-content-between align-items-center text-start" onclick="toggleSubNav('mobSuppSub', 'mobSuppArr')">
+              <span><i class="fa-solid fa-truck-field me-2"></i> Suppliers</span>
+              <i id="mobSuppArr" class="fa-solid fa-chevron-down small"></i>
+            </button>
+            <div id="mobSuppSub" style="display:none; padding-left:18px; border-left:2px solid #475569; margin-left:12px;">
+              <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabSuppliers" onclick="closeMobileMenu()">
+                <i class="fa-solid fa-list-ul me-2"></i> Supplier List
+              </a>
+              <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabSupplierEntries" onclick="closeMobileMenu(); renderPartyEntries('supplier');">
+                <i class="fa-solid fa-receipt me-2"></i> Supplier Entries
+              </a>
+            </div>
           </div>
-        </div>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabLedger" onclick="closeMobileMenu()"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabDues" onclick="closeMobileMenu()"><i class="fa-solid fa-coins me-2"></i> Combined Dues</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabReports" onclick="closeMobileMenu()"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</a>
@@ -364,8 +364,34 @@
 
       <div class="nav flex-column nav-pills" role="tablist">
         <button class="nav-link active text-start" data-bs-toggle="pill" data-bs-target="#tabDashboard"><i class="fa-solid fa-chart-line me-2"></i> POS Dashboard</button>
-        <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabCustomers"><i class="fa-solid fa-users me-2"></i> Customers</button>
-        <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabSuppliers"><i class="fa-solid fa-truck-field me-2"></i> Suppliers</button>
+        <div class="mb-1">
+          <button type="button" class="nav-link w-100 text-start d-flex justify-content-between align-items-center" onclick="toggleSubNav('pcCustSub', 'pcCustArr')">
+            <span><i class="fa-solid fa-users me-2"></i> Customers</span>
+            <i id="pcCustArr" class="fa-solid fa-chevron-down small"></i>
+          </button>
+          <div id="pcCustSub" style="display:none; padding-left:16px; border-left:2px solid #475569; margin-left:12px;">
+            <button type="button" class="nav-link text-start py-1 small w-100" data-bs-toggle="pill" data-bs-target="#tabCustomers">
+              <i class="fa-solid fa-address-book me-2"></i> Customer List
+            </button>
+            <button type="button" class="nav-link text-start py-1 small w-100" data-bs-toggle="pill" data-bs-target="#tabCustomerEntries" onclick="renderPartyEntries('customer')">
+              <i class="fa-solid fa-receipt me-2"></i> Customer Entries
+            </button>
+          </div>
+        </div>
+        <div class="mb-1">
+          <button type="button" class="nav-link w-100 text-start d-flex justify-content-between align-items-center" onclick="toggleSubNav('pcSuppSub', 'pcSuppArr')">
+            <span><i class="fa-solid fa-truck-field me-2"></i> Suppliers</span>
+            <i id="pcSuppArr" class="fa-solid fa-chevron-down small"></i>
+          </button>
+          <div id="pcSuppSub" style="display:none; padding-left:16px; border-left:2px solid #475569; margin-left:12px;">
+            <button type="button" class="nav-link text-start py-1 small w-100" data-bs-toggle="pill" data-bs-target="#tabSuppliers">
+              <i class="fa-solid fa-list-ul me-2"></i> Supplier List
+            </button>
+            <button type="button" class="nav-link text-start py-1 small w-100" data-bs-toggle="pill" data-bs-target="#tabSupplierEntries" onclick="renderPartyEntries('supplier')">
+              <i class="fa-solid fa-receipt me-2"></i> Supplier Entries
+            </button>
+          </div>
+        </div>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabLedger"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabDues"><i class="fa-solid fa-coins me-2"></i> Combined Dues</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabReports"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</button>
@@ -3744,6 +3770,18 @@
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
+  }
+
+
+  function toggleSubNav(boxId, arrId) {
+    const box = document.getElementById(boxId);
+    const arr = document.getElementById(arrId);
+    if (!box) return;
+    const isHidden = (box.style.display === 'none' || box.style.display === '');
+    box.style.display = isHidden ? 'block' : 'none';
+    if (arr) {
+      arr.className = isHidden ? 'fa-solid fa-chevron-up small' : 'fa-solid fa-chevron-down small';
+    }
   }
 
 </script>
