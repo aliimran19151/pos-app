@@ -315,8 +315,34 @@
       <div class="collapse navbar-collapse mt-2" id="mobileMenu">
         <div class="nav flex-column" role="tablist">
           <a class="mobile-nav-link active" data-bs-toggle="pill" data-bs-target="#tabDashboard" onclick="closeMobileMenu()"><i class="fa-solid fa-chart-line me-2"></i> POS Dashboard</a>
-          <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabCustomers" onclick="closeMobileMenu()"><i class="fa-solid fa-users me-2"></i> Customers</a>
-          <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabSuppliers" onclick="closeMobileMenu()"><i class="fa-solid fa-truck-field me-2"></i> Suppliers</a>
+          <div class="nav-category-group">
+          <a class="mobile-nav-link d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="toggleSidebarSubMenu('custSubMenu_1', this)">
+            <span><i class="fa-solid fa-users me-2"></i> Customers</span>
+            <i class="fa-solid fa-chevron-down small sub-arrow"></i>
+          </a>
+          <div id="custSubMenu_1" class="ps-3 ms-2 border-start border-secondary d-none">
+            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabCustomers" onclick="closeMobileMenu();">
+              <i class="fa-solid fa-address-book me-2"></i> Customer List
+            </a>
+            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabCustomerEntries" onclick="closeMobileMenu(); renderPartyEntries('customer');">
+              <i class="fa-solid fa-receipt me-2"></i> Customer Entries
+            </a>
+          </div>
+        </div>
+          <div class="nav-category-group">
+          <a class="mobile-nav-link d-flex justify-content-between align-items-center" href="javascript:void(0)" onclick="toggleSidebarSubMenu('suppSubMenu_1', this)">
+            <span><i class="fa-solid fa-truck-field me-2"></i> Suppliers</span>
+            <i class="fa-solid fa-chevron-down small sub-arrow"></i>
+          </a>
+          <div id="suppSubMenu_1" class="ps-3 ms-2 border-start border-secondary d-none">
+            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabSuppliers" onclick="closeMobileMenu();">
+              <i class="fa-solid fa-list-ul me-2"></i> Supplier List
+            </a>
+            <a class="mobile-nav-link py-1 small" data-bs-toggle="pill" data-bs-target="#tabSupplierEntries" onclick="closeMobileMenu(); renderPartyEntries('supplier');">
+              <i class="fa-solid fa-receipt me-2"></i> Supplier Entries
+            </a>
+          </div>
+        </div>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabLedger" onclick="closeMobileMenu()"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabDues" onclick="closeMobileMenu()"><i class="fa-solid fa-coins me-2"></i> Combined Dues</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabReports" onclick="closeMobileMenu()"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</a>
@@ -427,63 +453,6 @@
 
         <div class="tab-pane fade" id="tabCustomers">
 
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
-        <div class="btn-group" role="group" aria-label="Customer Views">
-          <button type="button" id="btnCustSubList" class="btn btn-sm btn-primary fw-bold" onclick="switchCustSubView('list')">
-            <i class="fa-solid fa-users me-1"></i> Customer List
-          </button>
-          <button type="button" id="btnCustSubEntries" class="btn btn-sm btn-outline-primary fw-bold" onclick="switchCustSubView('entries')">
-            <i class="fa-solid fa-list-check me-1"></i> Customer Entries
-          </button>
-        </div>
-      </div>
-
-      <div id="custSubEntriesView" class="d-none">
-        <div class="card border-0 shadow-sm p-2 p-md-3 mb-3 bg-light">
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-            <div class="btn-group btn-group-sm flex-wrap" role="group">
-              <button type="button" class="btn btn-dark fw-bold cust-ent-filter-btn active" data-filter="ALL" onclick="setCustEntryFilter('ALL', this)">All Entries</button>
-              <button type="button" class="btn btn-outline-danger fw-bold cust-ent-filter-btn" data-filter="SALE" onclick="setCustEntryFilter('SALE', this)">Maal Becha (Sale)</button>
-              <button type="button" class="btn btn-outline-success fw-bold cust-ent-filter-btn" data-filter="PAYMENT" onclick="setCustEntryFilter('PAYMENT', this)">Payment Received</button>
-              <button type="button" class="btn btn-outline-warning text-dark fw-bold cust-ent-filter-btn" data-filter="RETURN" onclick="setCustEntryFilter('RETURN', this)">Sale Return</button>
-            </div>
-            <span class="badge bg-primary fs-6" id="custEntriesTotalBadge">Total: Rs. 0</span>
-          </div>
-          <div class="row g-2">
-            <div class="col-12 col-md-5">
-              <input type="text" id="custEntriesSearch" class="form-control form-control-sm" placeholder="Search customer, bill # or note..." oninput="renderPartyEntries('customer')">
-            </div>
-            <div class="col-6 col-md-4">
-              <select id="custEntriesDateMode" class="form-select form-select-sm" onchange="onPartyEntryDateMode('customer')">
-                <option value="ALL">All Dates</option>
-                <option value="TODAY">Today Only</option>
-                <option value="CUSTOM">Specific Date</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-3">
-              <input type="date" id="custEntriesSpecificDate" class="form-control form-control-sm d-none" onchange="renderPartyEntries('customer')">
-            </div>
-          </div>
-        </div>
-        <div class="table-responsive bg-white rounded shadow-sm">
-          <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-dark small">
-              <tr>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Type</th>
-                <th>Bill / Details</th>
-                <th class="text-end">Amount</th>
-              </tr>
-            </thead>
-            <tbody id="custEntriesTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="custSubListView">
-
-
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Customers</h4>
             <div class="d-flex align-items-center gap-2">
@@ -519,67 +488,8 @@
             </div>
           </div>
         </div>
-      </div>
-
 
         <div class="tab-pane fade" id="tabSuppliers">
-
-      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom">
-        <div class="btn-group" role="group" aria-label="Supplier Views">
-          <button type="button" id="btnSuppSubList" class="btn btn-sm btn-primary fw-bold" onclick="switchSuppSubView('list')">
-            <i class="fa-solid fa-truck-field me-1"></i> Supplier List
-          </button>
-          <button type="button" id="btnSuppSubEntries" class="btn btn-sm btn-outline-primary fw-bold" onclick="switchSuppSubView('entries')">
-            <i class="fa-solid fa-list-check me-1"></i> Supplier Entries
-          </button>
-        </div>
-      </div>
-
-      <div id="suppSubEntriesView" class="d-none">
-        <div class="card border-0 shadow-sm p-2 p-md-3 mb-3 bg-light">
-          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
-            <div class="btn-group btn-group-sm flex-wrap" role="group">
-              <button type="button" class="btn btn-dark fw-bold supp-ent-filter-btn active" data-filter="ALL" onclick="setSuppEntryFilter('ALL', this)">All Entries</button>
-              <button type="button" class="btn btn-outline-danger fw-bold supp-ent-filter-btn" data-filter="PURCHASE" onclick="setSuppEntryFilter('PURCHASE', this)">Maal Khareeda (Purchase)</button>
-              <button type="button" class="btn btn-outline-success fw-bold supp-ent-filter-btn" data-filter="PAYMENT" onclick="setSuppEntryFilter('PAYMENT', this)">Payment Paid</button>
-              <button type="button" class="btn btn-outline-warning text-dark fw-bold supp-ent-filter-btn" data-filter="RETURN" onclick="setSuppEntryFilter('RETURN', this)">Purchase Return</button>
-            </div>
-            <span class="badge bg-primary fs-6" id="suppEntriesTotalBadge">Total: Rs. 0</span>
-          </div>
-          <div class="row g-2">
-            <div class="col-12 col-md-5">
-              <input type="text" id="suppEntriesSearch" class="form-control form-control-sm" placeholder="Search supplier, bill # or note..." oninput="renderPartyEntries('supplier')">
-            </div>
-            <div class="col-6 col-md-4">
-              <select id="suppEntriesDateMode" class="form-select form-select-sm" onchange="onPartyEntryDateMode('supplier')">
-                <option value="ALL">All Dates</option>
-                <option value="TODAY">Today Only</option>
-                <option value="CUSTOM">Specific Date</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-3">
-              <input type="date" id="suppEntriesSpecificDate" class="form-control form-control-sm d-none" onchange="renderPartyEntries('supplier')">
-            </div>
-          </div>
-        </div>
-        <div class="table-responsive bg-white rounded shadow-sm">
-          <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-dark small">
-              <tr>
-                <th>Date</th>
-                <th>Supplier</th>
-                <th>Type</th>
-                <th>Bill / Details</th>
-                <th class="text-end">Amount</th>
-              </tr>
-            </thead>
-            <tbody id="suppEntriesTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <div id="suppSubListView">
-
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Suppliers</h4>
             <div class="d-flex align-items-center gap-2">
@@ -615,7 +525,107 @@
             </div>
           </div>
         </div>
+
+      <!-- CUSTOMER ENTRIES TAB -->
+      <div class="tab-pane fade" id="tabCustomerEntries">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h4 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-primary me-2"></i>Customer Entries</h4>
+            <small class="text-muted">Sirf rozmarra ki asli entries (Opening balance aur imported dues yahan nahi dikhenge)</small>
+          </div>
+          <span class="badge bg-primary fs-6 px-3 py-2" id="custEntriesTotalBadge">Total: Rs. 0 (0)</span>
+        </div>
+
+        <div class="card border-0 shadow-sm p-2 p-md-3 mb-3 bg-white">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <button type="button" class="btn btn-sm btn-dark fw-bold cust-ent-filter-btn" data-filter="ALL" onclick="setCustEntryFilter('ALL', this)">All Entries</button>
+            <button type="button" class="btn btn-sm btn-outline-danger fw-bold cust-ent-filter-btn" data-filter="SALE" onclick="setCustEntryFilter('SALE', this)">Maal Becha (Sale)</button>
+            <button type="button" class="btn btn-sm btn-outline-success fw-bold cust-ent-filter-btn" data-filter="PAYMENT" onclick="setCustEntryFilter('PAYMENT', this)">Payment Received</button>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold cust-ent-filter-btn" data-filter="RETURN" onclick="setCustEntryFilter('RETURN', this)">Sale Return</button>
+          </div>
+          <div class="row g-2">
+            <div class="col-12 col-md-5">
+              <input type="text" id="custEntriesSearch" class="form-control form-control-sm" placeholder="Customer naam, Bill # ya detail likh kar search karein..." oninput="renderPartyEntries('customer')">
+            </div>
+            <div class="col-6 col-md-4">
+              <select id="custEntriesDateMode" class="form-select form-select-sm" onchange="onPartyEntryDateMode('customer')">
+                <option value="ALL">All Dates</option>
+                <option value="TODAY">Today Only</option>
+                <option value="CUSTOM">Specific Date</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <input type="date" id="custEntriesSpecificDate" class="form-control form-control-sm d-none" onchange="renderPartyEntries('customer')">
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive bg-white rounded shadow-sm">
+          <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-dark small">
+              <tr>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Entry Type</th>
+                <th>Bill # / Details</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="custEntriesTableBody"></tbody>
+          </table>
+        </div>
       </div>
+
+      <!-- SUPPLIER ENTRIES TAB -->
+      <div class="tab-pane fade" id="tabSupplierEntries">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h4 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-success me-2"></i>Supplier Entries</h4>
+            <small class="text-muted">Sirf rozmarra ki asli entries (Opening balance aur imported dues yahan nahi dikhenge)</small>
+          </div>
+          <span class="badge bg-success fs-6 px-3 py-2" id="suppEntriesTotalBadge">Total: Rs. 0 (0)</span>
+        </div>
+
+        <div class="card border-0 shadow-sm p-2 p-md-3 mb-3 bg-white">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+            <button type="button" class="btn btn-sm btn-dark fw-bold supp-ent-filter-btn" data-filter="ALL" onclick="setSuppEntryFilter('ALL', this)">All Entries</button>
+            <button type="button" class="btn btn-sm btn-outline-danger fw-bold supp-ent-filter-btn" data-filter="PURCHASE" onclick="setSuppEntryFilter('PURCHASE', this)">Maal Khareeda (Purchase)</button>
+            <button type="button" class="btn btn-sm btn-outline-success fw-bold supp-ent-filter-btn" data-filter="PAYMENT" onclick="setSuppEntryFilter('PAYMENT', this)">Payment Paid</button>
+            <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold supp-ent-filter-btn" data-filter="RETURN" onclick="setSuppEntryFilter('RETURN', this)">Purchase Return</button>
+          </div>
+          <div class="row g-2">
+            <div class="col-12 col-md-5">
+              <input type="text" id="suppEntriesSearch" class="form-control form-control-sm" placeholder="Supplier naam, Bill # ya detail likh kar search karein..." oninput="renderPartyEntries('supplier')">
+            </div>
+            <div class="col-6 col-md-4">
+              <select id="suppEntriesDateMode" class="form-select form-select-sm" onchange="onPartyEntryDateMode('supplier')">
+                <option value="ALL">All Dates</option>
+                <option value="TODAY">Today Only</option>
+                <option value="CUSTOM">Specific Date</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <input type="date" id="suppEntriesSpecificDate" class="form-control form-control-sm d-none" onchange="renderPartyEntries('supplier')">
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive bg-white rounded shadow-sm">
+          <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-dark small">
+              <tr>
+                <th>Date</th>
+                <th>Supplier</th>
+                <th>Entry Type</th>
+                <th>Bill # / Details</th>
+                <th class="text-end">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="suppEntriesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
 
 
         <div class="tab-pane fade" id="tabLedger">
