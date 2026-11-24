@@ -387,6 +387,19 @@
         </div>
 
         <div class="tab-pane fade" id="tabCustomers">
+
+          <div id="custMultiSelectBar" class="alert alert-primary py-2 px-3 mb-2 d-none d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="fw-bold small">
+              <i class="fa-solid fa-check-square me-1"></i> Selected (<span id="custSelectedCount">0</span>):
+            </div>
+            <div class="d-flex gap-2">
+              <button class="btn btn-sm btn-danger fw-bold" onclick="downloadSelectedCustomerLedgers()">
+                <i class="fa-solid fa-file-pdf me-1"></i> Download Alag-Alag PDF
+              </button>
+              <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="clearCustMultiSelect()">Clear</button>
+            </div>
+          </div>
+
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Customers</h4>
             <div class="d-flex align-items-center gap-2">
@@ -433,22 +446,6 @@
         </div>
 
         <div class="tab-pane fade" id="tabLedger">
-          <!-- MULTI-SELECT LEDGER BATCH DOWNLOADER (ALAG-ALAG PDF) -->
-          <div class="card card-stat p-3 bg-white mb-3">
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
-              <div>
-                <h6 class="fw-bold mb-0"><i class="fa-solid fa-layer-group text-primary me-1"></i> Multiple Parties Ledgers (Alag-Alag PDF)</h6>
-                <small class="text-muted">Parties tick karein — har bande ki apni alag PDF download hogi</small>
-              </div>
-              <div class="d-flex flex-wrap align-items-center gap-2">
-                <input type="text" id="multiLedgerQuickFilter" class="form-control form-control-sm" style="width:140px;" placeholder="Filter name..." oninput="renderMultiLedgerChecklist()">
-                <button class="btn btn-sm btn-danger fw-bold" id="btnDownloadBatchLedgers" onclick="downloadSelectedIndividualLedgers()" disabled>
-                  <i class="fa-solid fa-file-pdf me-1"></i> Download (<span id="multiLedgerSelCount">0</span>)
-                </button>
-              </div>
-            </div>
-            <div id="multiLedgerChecklist" class="d-flex flex-wrap gap-2" style="max-height: 140px; overflow-y: auto; border: 1px solid #e9ecef; border-radius: 6px; padding: 8px; background: #f8f9fa;"></div>
-          </div>
 
           <h4 class="fw-bold mb-3">Party Ledger Search</h4>
           <div class="card card-stat p-3 bg-white mb-3">
@@ -3444,6 +3441,69 @@
       setTimeout(() => {
         generateSinglePartyLedgerPDF(name, role);
       }, index * 500);
+    });
+  }
+
+
+  function updateCustMultiSelectBar() {
+    const chks = document.querySelectorAll(".party-multi-chk:checked");
+    const bar = document.getElementById("custMultiSelectBar");
+    const cnt = document.getElementById("custSelectedCount");
+    if (!bar) return;
+    if (chks.length === 0) {
+      bar.classList.add("d-none");
+    } else {
+      bar.classList.remove("d-none");
+      if (cnt) cnt.innerText = chks.length;
+    }
+  }
+
+  function clearCustMultiSelect() {
+    document.querySelectorAll(".party-multi-chk:checked").forEach(c => c.checked = false);
+    updateCustMultiSelectBar();
+  }
+
+  function downloadSelectedCustomerLedgers() {
+    const chks = Array.from(document.querySelectorAll(".party-multi-chk:checked"));
+    if (chks.length === 0) return;
+    chks.forEach((chk, idx) => {
+      const name = chk.dataset.pname;
+      setTimeout(() => {
+        if (typeof generateSinglePartyLedgerPDF === "function") {
+          generateSinglePartyLedgerPDF(name, "Customer");
+        }
+      }, idx * 500);
+    });
+  }
+
+  function updateSuppMultiSelectBar() {
+    const chks = document.querySelectorAll(".supp-multi-chk:checked");
+    const bar = document.getElementById("suppMultiSelectBar");
+    const cnt = document.getElementById("suppSelectedCount");
+    if (!bar) return;
+    if (chks.length === 0) {
+      bar.classList.add("d-none");
+    } else {
+      bar.classList.remove("d-none");
+      if (cnt) cnt.innerText = chks.length;
+    }
+  }
+
+  function clearSuppMultiSelect() {
+    document.querySelectorAll(".supp-multi-chk:checked").forEach(c => c.checked = false);
+    updateSuppMultiSelectBar();
+  }
+
+  function downloadSelectedSupplierLedgers() {
+    const chks = Array.from(document.querySelectorAll(".supp-multi-chk:checked"));
+    if (chks.length === 0) return;
+    chks.forEach((chk, idx) => {
+      const name = chk.dataset.pname;
+      setTimeout(() => {
+        if (typeof generateSinglePartyLedgerPDF === "function") {
+          generateSinglePartyLedgerPDF(name, "Supplier");
+        }
+      }, idx * 500);
     });
   }
 
