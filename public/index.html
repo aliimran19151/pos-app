@@ -25,6 +25,39 @@
     .multi-entry-row { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; margin-bottom: 8px; }
     .img-preview { max-height: 80px; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 5px; }
   </style>
+
+  <style id="mobileResponsiveMultiCss">
+    .party-multi-chk, .supp-multi-chk, .dues-party-chk {
+      width: 18px !important;
+      height: 18px !important;
+      min-width: 18px !important;
+      cursor: pointer;
+      margin-top: 0 !important;
+      flex-shrink: 0;
+    }
+    .party-name-cell-flex {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-align: left !important;
+    }
+    @media (max-width: 576px) {
+      #custCompactToolbar .input-group,
+      #suppCompactToolbar .input-group,
+      #duesSearchInput {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+      #custMultiSelectBar, #suppMultiSelectBar {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .party-name-cell-flex {
+        font-size: 13px;
+      }
+    }
+  </style>
+
 </head>
 <body>
 
@@ -417,7 +450,7 @@
             </div>
           </div>
 <table class="table table-striped table-bordered text-center align-middle" style="font-size: 14px;">
-                <thead class="table-dark"><tr><th>Customer</th><th>Phone</th><th>Net Due</th><th>Action</th></tr></thead>
+                <thead class="table-dark"><tr><th class="text-start ps-2 ps-md-3">Customer</th><th>Phone</th><th>Net Due</th><th>Action</th></tr></thead>
                 <tbody id="customersTableBody"><tr><td colspan="4" class="text-muted">No customers added yet.</td></tr></tbody>
               </table>
             </div>
@@ -454,7 +487,7 @@
             </div>
           </div>
 <table class="table table-striped table-bordered text-center align-middle" style="font-size: 14px;">
-                <thead class="table-dark"><tr><th>Supplier</th><th>Phone</th><th>Net Payable</th><th>Action</th></tr></thead>
+                <thead class="table-dark"><tr><th class="text-start ps-2 ps-md-3">Supplier</th><th>Phone</th><th>Net Payable</th><th>Action</th></tr></thead>
                 <tbody id="suppliersTableBody"><tr><td colspan="4" class="text-muted">No suppliers added yet.</td></tr></tbody>
               </table>
             </div>
@@ -589,7 +622,7 @@
                 </div>
                 <div class="table-responsive">
                   <table class="table table-striped table-bordered text-center align-middle" style="font-size: 13px;">
-                    <thead class="table-dark"><tr><th>Customer Name</th><th>Net Due</th><th>Action</th></tr></thead>
+                    <thead class="table-dark"><tr><th class="text-start ps-2 ps-md-3">Customer Name</th><th>Net Due</th><th>Action</th></tr></thead>
                     <tbody id="customerDuesBody"></tbody>
                   </table>
                 </div>
@@ -604,7 +637,7 @@
                 </div>
                 <div class="table-responsive">
                   <table class="table table-striped table-bordered text-center align-middle" style="font-size: 13px;">
-                    <thead class="table-dark"><tr><th>Supplier Name</th><th>Net Payable</th><th>Action</th></tr></thead>
+                    <thead class="table-dark"><tr><th class="text-start ps-2 ps-md-3">Supplier Name</th><th>Net Payable</th><th>Action</th></tr></thead>
                     <tbody id="supplierDuesBody"></tbody>
                   </table>
                 </div>
@@ -2041,7 +2074,7 @@
       let safeC = item.name.replace(/'/g, "\\'");
       custHtml += `
         <tr>
-          <td><input type="checkbox" class="form-check-input me-2 party-multi-chk" data-pname="${String(item.name).replace(/"/g, "&quot;")}" onchange="updateCustMultiSelectBar()"> ${item.name}</td>
+          <td class="text-start ps-2 ps-md-3"><div class="party-name-cell-flex"><input type="checkbox" class="form-check-input me-2 party-multi-chk" data-pname="${String(item.name).replace(/"/g, "&quot;")}" onchange="updateCustMultiSelectBar()"> ${item.name}</div></td>
           <td>${item.phone}</td>
           <td class="fw-bold text-danger">Rs. ${item.net.toLocaleString()}</td>
           <td class="text-nowrap">
@@ -2057,7 +2090,7 @@
       let safeS = item.name.replace(/'/g, "\\'");
       suppHtml += `
         <tr>
-          <td><input type="checkbox" class="form-check-input me-2 supp-multi-chk" data-pname="${String(item.name).replace(/"/g, "&quot;")}" onchange="updateSuppMultiSelectBar()"> ${item.name}</td>
+          <td class="text-start ps-2 ps-md-3"><div class="party-name-cell-flex"><input type="checkbox" class="form-check-input me-2 supp-multi-chk" data-pname="${String(item.name).replace(/"/g, "&quot;")}" onchange="updateSuppMultiSelectBar()"> ${item.name}</div></td>
           <td>${item.phone}</td>
           <td class="fw-bold text-warning">Rs. ${item.net.toLocaleString()}</td>
           <td class="text-nowrap">
@@ -2124,10 +2157,7 @@
       let escName = item.name.replace(/"/g, "&quot;");
       custHtml += `
         <tr>
-          <td class="fw-bold text-start ps-2"><input type="checkbox" class="form-check-input me-2 party-multi-chk" data-pname="${String(escName).replace(/"/g, "&quot;")}" onchange="updateCustMultiSelectBar()"> 
-            <input type="checkbox" class="form-check-input me-2 dues-party-chk" data-role="Customer" data-name="${escName}" data-net="${item.net}" onchange="updateDuesSelectionBar()">
-            ${item.name}
-          </td>
+          <td class="fw-bold text-start ps-2"><div class="party-name-cell-flex"><input type="checkbox" class="form-check-input me-2 dues-party-chk" data-role="Customer" data-name="${escName}" data-net="${item.net}" onchange="updateDuesSelectionBar()"><span>${item.name}</span></div></td>
           <td class="fw-bold text-danger">Rs. ${item.net.toLocaleString()}</td>
           <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeC}', 'Customer')">View</button></td>
         </tr>
@@ -2140,10 +2170,7 @@
       let escName = item.name.replace(/"/g, "&quot;");
       suppHtml += `
         <tr>
-          <td class="fw-bold text-start ps-2"><input type="checkbox" class="form-check-input me-2 supp-multi-chk" data-pname="${String(escName).replace(/"/g, "&quot;")}" onchange="updateSuppMultiSelectBar()"> 
-            <input type="checkbox" class="form-check-input me-2 dues-party-chk" data-role="Supplier" data-name="${escName}" data-net="${item.net}" onchange="updateDuesSelectionBar()">
-            ${item.name}
-          </td>
+          <td class="fw-bold text-start ps-2"><div class="party-name-cell-flex"><input type="checkbox" class="form-check-input me-2 dues-party-chk" data-role="Supplier" data-name="${escName}" data-net="${item.net}" onchange="updateDuesSelectionBar()"><span>${item.name}</span></div></td>
           <td class="fw-bold text-warning">Rs. ${item.net.toLocaleString()}</td>
           <td><button class="btn btn-sm btn-outline-primary py-0 fw-bold" style="font-size:11px;" onclick="viewPartyLedger('${safeS}', 'Supplier')">View</button></td>
         </tr>
@@ -3512,7 +3539,7 @@
         if (typeof generateSinglePartyLedgerPDF === "function") {
           generateSinglePartyLedgerPDF(name, "Customer");
         }
-      }, idx * 500);
+      }, idx * 750);
     });
   }
 
@@ -3543,7 +3570,7 @@
         if (typeof generateSinglePartyLedgerPDF === "function") {
           generateSinglePartyLedgerPDF(name, "Supplier");
         }
-      }, idx * 500);
+      }, idx * 750);
     });
   }
 
