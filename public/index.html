@@ -388,18 +388,6 @@
 
         <div class="tab-pane fade" id="tabCustomers">
 
-          <div id="custMultiSelectBar" class="alert alert-primary py-2 px-3 mb-2 d-none d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div class="fw-bold small">
-              <i class="fa-solid fa-check-square me-1"></i> Selected (<span id="custSelectedCount">0</span>):
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-sm btn-danger fw-bold" onclick="downloadSelectedCustomerLedgers()">
-                <i class="fa-solid fa-file-pdf me-1"></i> Download Alag-Alag PDF
-              </button>
-              <button class="btn btn-sm btn-outline-secondary fw-bold" onclick="clearCustMultiSelect()">Clear</button>
-            </div>
-          </div>
-
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Customers</h4>
             <div class="d-flex align-items-center gap-2">
@@ -414,7 +402,21 @@
           </div>
           <div class="card card-stat p-2 p-md-3 bg-white">
             <div class="table-responsive">
-              <table class="table table-striped table-bordered text-center align-middle" style="font-size: 14px;">
+              
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2" id="custCompactToolbar">
+            <div class="input-group input-group-sm" style="max-width: 260px;">
+              <span class="input-group-text bg-white border-primary text-primary"><i class="fa-solid fa-magnifying-glass"></i></span>
+              <input type="text" id="custTabSearchInput" class="form-control border-primary" placeholder="Search customer / book..." oninput="filterPartyTableRows('cust')">
+            </div>
+            <div id="custMultiSelectBar" class="d-none d-flex align-items-center gap-2 bg-primary-subtle border border-primary rounded px-2 py-1">
+              <span class="fw-bold small text-primary">Selected (<span id="custSelectedCount">0</span>)</span>
+              <button class="btn btn-sm btn-danger fw-bold py-0 px-2" style="font-size:12px;" onclick="downloadSelectedCustomerLedgers()">
+                <i class="fa-solid fa-file-pdf me-1"></i> Download Selected PDFs
+              </button>
+              <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:12px;" onclick="clearCustMultiSelect()">Clear</button>
+            </div>
+          </div>
+<table class="table table-striped table-bordered text-center align-middle" style="font-size: 14px;">
                 <thead class="table-dark"><tr><th>Customer</th><th>Phone</th><th>Net Due</th><th>Action</th></tr></thead>
                 <tbody id="customersTableBody"><tr><td colspan="4" class="text-muted">No customers added yet.</td></tr></tbody>
               </table>
@@ -437,7 +439,21 @@
           </div>
           <div class="card card-stat p-2 p-md-3 bg-white">
             <div class="table-responsive">
-              <table class="table table-striped table-bordered text-center align-middle" style="font-size: 14px;">
+              
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2" id="suppCompactToolbar">
+            <div class="input-group input-group-sm" style="max-width: 260px;">
+              <span class="input-group-text bg-white border-warning text-warning"><i class="fa-solid fa-magnifying-glass"></i></span>
+              <input type="text" id="suppTabSearchInput" class="form-control border-warning" placeholder="Search supplier / book..." oninput="filterPartyTableRows('supp')">
+            </div>
+            <div id="suppMultiSelectBar" class="d-none d-flex align-items-center gap-2 bg-warning-subtle border border-warning rounded px-2 py-1">
+              <span class="fw-bold small text-dark">Selected (<span id="suppSelectedCount">0</span>)</span>
+              <button class="btn btn-sm btn-danger fw-bold py-0 px-2" style="font-size:12px;" onclick="downloadSelectedSupplierLedgers()">
+                <i class="fa-solid fa-file-pdf me-1"></i> Download Selected PDFs
+              </button>
+              <button class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size:12px;" onclick="clearSuppMultiSelect()">Clear</button>
+            </div>
+          </div>
+<table class="table table-striped table-bordered text-center align-middle" style="font-size: 14px;">
                 <thead class="table-dark"><tr><th>Supplier</th><th>Phone</th><th>Net Payable</th><th>Action</th></tr></thead>
                 <tbody id="suppliersTableBody"><tr><td colspan="4" class="text-muted">No suppliers added yet.</td></tr></tbody>
               </table>
@@ -518,6 +534,7 @@
           <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
             <h4 class="fw-bold mb-0">Market Combined Dues Summary</h4>
             <div class="d-flex flex-wrap align-items-center gap-2">
+              <input type="text" id="duesSearchInput" class="form-control form-control-sm border-primary" style="width:155px;" placeholder="Search party / book..." oninput="renderDuesLists()">
               <select id="duesSortSelect" class="form-select form-select-sm fw-bold border-secondary" onchange="renderDuesLists()">
                 <option value="HIGH_BAL">Sort: Highest Balance</option>
                 <option value="LOW_BAL">Sort: Lowest Balance</option>
@@ -2024,7 +2041,7 @@
       let safeC = item.name.replace(/'/g, "\\'");
       custHtml += `
         <tr>
-          <td>${item.name}</td>
+          <td><input type="checkbox" class="form-check-input me-2 party-multi-chk" data-pname="${String(item.name).replace(/"/g, "&quot;")}" onchange="updateCustMultiSelectBar()"> ${item.name}</td>
           <td>${item.phone}</td>
           <td class="fw-bold text-danger">Rs. ${item.net.toLocaleString()}</td>
           <td class="text-nowrap">
@@ -2040,7 +2057,7 @@
       let safeS = item.name.replace(/'/g, "\\'");
       suppHtml += `
         <tr>
-          <td>${item.name}</td>
+          <td><input type="checkbox" class="form-check-input me-2 supp-multi-chk" data-pname="${String(item.name).replace(/"/g, "&quot;")}" onchange="updateSuppMultiSelectBar()"> ${item.name}</td>
           <td>${item.phone}</td>
           <td class="fw-bold text-warning">Rs. ${item.net.toLocaleString()}</td>
           <td class="text-nowrap">
@@ -2094,8 +2111,9 @@
       return 0;
     });
 
-    const custDuesArr = sortDues(Object.keys(custMap).map(c => ({ name: c, net: custMap[c].total - custMap[c].paid })).filter(x => x.net !== 0));
-    const suppDuesArr = sortDues(Object.keys(suppMap).map(s => ({ name: s, net: suppMap[s].total - suppMap[s].paid })).filter(x => x.net !== 0));
+    const duesQuery = (document.getElementById("duesSearchInput")?.value || "").toLowerCase().trim();
+    const custDuesArr = sortDues(Object.keys(custMap).map(c => ({ name: c, net: custMap[c].total - custMap[c].paid })).filter(x => x.net !== 0 && (!duesQuery || x.name.toLowerCase().includes(duesQuery))));
+    const suppDuesArr = sortDues(Object.keys(suppMap).map(s => ({ name: s, net: suppMap[s].total - suppMap[s].paid })).filter(x => x.net !== 0 && (!duesQuery || s.toLowerCase().includes(duesQuery))));
 
     let custHtml = "", suppHtml = "";
     let grandCust = 0, grandSupp = 0, custCount = custDuesArr.length, suppCount = suppDuesArr.length;
@@ -2106,7 +2124,7 @@
       let escName = item.name.replace(/"/g, "&quot;");
       custHtml += `
         <tr>
-          <td class="fw-bold text-start ps-2">
+          <td class="fw-bold text-start ps-2"><input type="checkbox" class="form-check-input me-2 party-multi-chk" data-pname="${String(escName).replace(/"/g, "&quot;")}" onchange="updateCustMultiSelectBar()"> 
             <input type="checkbox" class="form-check-input me-2 dues-party-chk" data-role="Customer" data-name="${escName}" data-net="${item.net}" onchange="updateDuesSelectionBar()">
             ${item.name}
           </td>
@@ -2122,7 +2140,7 @@
       let escName = item.name.replace(/"/g, "&quot;");
       suppHtml += `
         <tr>
-          <td class="fw-bold text-start ps-2">
+          <td class="fw-bold text-start ps-2"><input type="checkbox" class="form-check-input me-2 supp-multi-chk" data-pname="${String(escName).replace(/"/g, "&quot;")}" onchange="updateSuppMultiSelectBar()"> 
             <input type="checkbox" class="form-check-input me-2 dues-party-chk" data-role="Supplier" data-name="${escName}" data-net="${item.net}" onchange="updateDuesSelectionBar()">
             ${item.name}
           </td>
@@ -3282,41 +3300,63 @@
 
   function downloadSelectedDuesPDF() {
     const chks = document.querySelectorAll(".dues-party-chk:checked");
-    if (chks.length === 0) return alert("Pehle kam az kam 1 party select karein.");
+    if (chks.length === 0) return alert("Please select at least 1 party.");
 
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    const bizName = document.getElementById("sidebarBizName") ? document.getElementById("sidebarBizName").innerText : "POS Statement";
+    const bizName = (document.getElementById("sidebarBizName")?.innerText || "SMART SHOP POS").trim();
+    const todayStr = getLocalISODate(0);
 
-    doc.setFontSize(15);
-    doc.text(`${bizName} - Selected Parties Balance Summary`, 14, 16);
+    doc.setFillColor(13, 110, 253);
+    doc.rect(0, 0, 210, 28, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont(undefined, "bold");
+    doc.text(bizName.toUpperCase(), 14, 12);
     doc.setFontSize(10);
-    doc.text(`Date: ${getLocalISODate(0)} | Total Selected: ${chks.length}`, 14, 23);
+    doc.setFont(undefined, "normal");
+    doc.text("SELECTED PARTIES DUES / BALANCE STATEMENT", 14, 19);
+    doc.text(`Date: ${todayStr}  |  Selected Parties: ${chks.length}`, 14, 25);
+
+    doc.setTextColor(0, 0, 0);
 
     const rows = [];
     let grandTotal = 0;
     chks.forEach((c, idx) => {
+      const name = c.dataset.name || "";
+      const role = c.dataset.role || "Customer";
       const net = Number(c.dataset.net || 0);
       grandTotal += net;
-      rows.push([idx + 1, c.dataset.name, c.dataset.role, "Rs. " + net.toLocaleString()]);
+
+      const pObj = (userParties || []).find(p => (p.name || "").trim().toLowerCase() === name.trim().toLowerCase() && p.role === role);
+      const phone = (pObj && pObj.phone) ? pObj.phone : "-";
+
+      rows.push([idx + 1, name, role, phone, "Rs. " + net.toLocaleString()]);
     });
-    rows.push(["", "TOTAL SELECTED BALANCE", "", "Rs. " + grandTotal.toLocaleString()]);
+
+    rows.push(["", "TOTAL SELECTED BALANCE", "", "", "Rs. " + grandTotal.toLocaleString()]);
 
     doc.autoTable({
-      startY: 28,
-      head: [["#", "Party Name", "Type", "Net Balance"]],
+      startY: 34,
+      head: [["#", "Party Name", "Type", "Phone", "Net Balance"]],
       body: rows,
-      theme: "grid",
-      headStyles: { fillColor: [33, 37, 41] },
+      theme: "striped",
+      styles: { fontSize: 9.5, cellPadding: 3 },
+      headStyles: { fillColor: [33, 37, 41], textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 12 },
+        4: { halign: "right", fontStyle: "bold" }
+      },
       didParseCell: function(data) {
         if (data.row.index === rows.length - 1) {
           data.cell.styles.fontStyle = "bold";
-          data.cell.styles.fillColor = [240, 240, 240];
+          data.cell.styles.fillColor = [220, 235, 255];
+          data.cell.styles.textColor = [13, 110, 253];
         }
       }
     });
 
-    doc.save(`Selected_Parties_Summary_${getLocalISODate(0)}.pdf`);
+    doc.save(`Selected_Dues_Statement_${todayStr}.pdf`);
   }
 
   let selectedBatchParties = new Set();
@@ -3504,6 +3544,19 @@
           generateSinglePartyLedgerPDF(name, "Supplier");
         }
       }, idx * 500);
+    });
+  }
+
+
+  function filterPartyTableRows(kind) {
+    const inputId = kind === "cust" ? "custTabSearchInput" : "suppTabSearchInput";
+    const chkClass = kind === "cust" ? ".party-multi-chk" : ".supp-multi-chk";
+    const q = (document.getElementById(inputId)?.value || "").toLowerCase().trim();
+    document.querySelectorAll(chkClass).forEach(chk => {
+      const tr = chk.closest("tr");
+      if (!tr) return;
+      const rowText = tr.innerText.toLowerCase();
+      tr.style.display = (!q || rowText.includes(q)) ? "" : "none";
     });
   }
 
