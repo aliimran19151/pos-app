@@ -58,6 +58,12 @@
     }
   </style>
 
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0d6efd">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Smart POS">
+  <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3144/3144456.png">
 </head>
 <body>
 
@@ -3584,6 +3590,31 @@
       if (!tr) return;
       const rowText = tr.innerText.toLowerCase();
       tr.style.display = (!q || rowText.includes(q)) ? "" : "none";
+    });
+  }
+
+
+  // PWA Install Support (Android, PC & iOS Guide)
+  let deferredInstallPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
+  function triggerPwaInstall() {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then(() => {
+        deferredInstallPrompt = null;
+      });
+    } else {
+      alert("Install karne ke liye:\n• PC (Chrome/Edge): Address bar ke right kone mein Install icon (💻⬇️) par click karein.\n• iPhone/iPad (Safari): Neeche Share (⬆️) dabakar 'Add to Home Screen' karein.\n• Android (Chrome): 3-dots menu se 'Install App' dabayein.");
+    }
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
     });
   }
 
