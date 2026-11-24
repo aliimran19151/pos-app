@@ -1183,7 +1183,12 @@
       } else {
         currentUser = resData.data.profile;
         userTransactions = resData.data.transactions || [];
-        userParties = resData.data.parties || [];
+        const _rawParties = resData.data.parties || [];
+        const _stampRec = _rawParties.find(p => p && p.id === '__SHOP_STAMP_CFG__');
+        if (_stampRec && _stampRec.stampCfg && typeof currentUser !== 'undefined' && currentUser && currentUser.phone) {
+          try { localStorage.setItem('pos_shop_stamp_cfg_' + currentUser.phone, JSON.stringify(_stampRec.stampCfg)); } catch(e) {}
+        }
+        userParties = _rawParties.filter(p => !p || p.id !== '__SHOP_STAMP_CFG__');
         showApp();
         shrinkOldHeavyImages();
       }
@@ -1418,7 +1423,14 @@
         body: JSON.stringify({
           phone: currentUser.phone,
           transactions: userTransactions,
-          parties: userParties
+          parties: (function() {
+            const cleanP = (userParties || []).filter(p => !p || p.id !== '__SHOP_STAMP_CFG__');
+            try {
+              const rawSt = localStorage.getItem('pos_shop_stamp_cfg_' + currentUser.phone);
+              if (rawSt) cleanP.push({ id: '__SHOP_STAMP_CFG__', name: '__SYSTEM_STAMP__', role: '__SYSTEM__', stampCfg: JSON.parse(rawSt) });
+            } catch(e) {}
+            return cleanP;
+          })()
         })
       });
     } catch(e) {}
@@ -3669,12 +3681,21 @@
     if (el) el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
   }
   function getStampStorageKey() {
-    const uid = (typeof currentUser !== 'undefined' && currentUser && currentUser.uid) ? currentUser.uid : 'default';
-    return 'pos_shop_stamp_cfg_' + uid;
+    const ph = (typeof currentUser !== 'undefined' && currentUser && currentUser.phone) ? String(currentUser.phone).trim() : 'default';
+    return 'pos_shop_stamp_cfg_' + ph;
   }
   function getActiveShopStampConfig() {
     try {
-      const raw = localStorage.getItem(getStampStorageKey());
+      const phKey = getStampStorageKey();
+      let raw = localStorage.getItem(phKey);
+      if (!raw && phKey !== 'pos_shop_stamp_cfg_default') {
+        const legacy = localStorage.getItem('pos_shop_stamp_cfg_default');
+        if (legacy) {
+          localStorage.setItem(phKey, legacy);
+          localStorage.removeItem('pos_shop_stamp_cfg_default');
+          raw = legacy;
+        }
+      }
       if (raw) return JSON.parse(raw);
     } catch (e) {}
     return { enabled: false, line1: '', line2: '', line3: '', line4: '', imgData: '' };
@@ -3735,44 +3756,28 @@
       }
     }
   }
-  let _stampSyncedFromCloud = false;
-  function syncShopStampFromCloud(forcePushLocal) {
-    try {
-      if (typeof db === 'undefined' || typeof currentUser === 'undefined' || !currentUser || !currentUser.uid) return false;
-      db.collection('users').doc(currentUser.uid).get().then(doc => {
-        const cloudCfg = (doc.exists && doc.data().shopStampConfig) ? doc.data().shopStampConfig : null;
-        const localCfg = getActiveShopStampConfig();
-        if (cloudCfg && (cloudCfg.imgData || cloudCfg.line1)) {
-          try { localStorage.setItem(getStampStorageKey(), JSON.stringify(cloudCfg)); } catch (e) {}
-          applyStampConfigToDOM(cloudCfg);
-        } else if (forcePushLocal && localCfg && (localCfg.imgData || localCfg.line1)) {
-          // If this phone already has the stamp saved locally, push it up to Firebase so all other devices get it!
-          db.collection('users').doc(currentUser.uid).set({ shopStampConfig: localCfg }, { merge: true }).catch(() => {});
-        }
-      }).catch(() => {});
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
   function loadShopStampUI() {
-    applyStampConfigToDOM(getActiveShopStampConfig());
-    if (!syncShopStampFromCloud(true)) {
-      let tries = 0;
-      const timer = setInterval(() => {
-        tries++;
-        if (syncShopStampFromCloud(true) || tries > 15) clearInterval(timer);
-      }, 1000);
-    }
+    let tries = 0;
+    const timer = setInterval(() => {
+      tries++;
+      if (typeof currentUser !== 'undefined' && currentUser && currentUser.phone) {
+        clearInterval(timer);
+        const cfg = getActiveShopStampConfig();
+        applyStampConfigToDOM(cfg);
+        if ((cfg.imgData || cfg.line1) && typeof saveToServer === 'function') {
+          saveToServer();
+        }
+      } else if (tries > 20) {
+        clearInterval(timer);
+      }
+    }, 500);
   }
   function persistStampToFirebaseAndLocal(cfg) {
     try { localStorage.setItem(getStampStorageKey(), JSON.stringify(cfg)); } catch (e) {}
-    try {
-      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
-        db.collection('users').doc(currentUser.uid).set({ shopStampConfig: cfg }, { merge: true }).catch(() => {});
-      }
-    } catch (e) {}
     applyStampConfigToDOM(cfg);
+    if (typeof saveToServer === 'function' && typeof currentUser !== 'undefined' && currentUser && currentUser.phone) {
+      saveToServer();
+    }
   }
   function saveShopStampSettings() {
     const cfg = getActiveShopStampConfig();
@@ -3788,7 +3793,7 @@
     if (!l1 && !l2) { alert('Kam az kam Shop Name likhein!'); return; }
     const imgData = renderStampCanvasDataUrl(l1, l2, l3, l4);
     persistStampToFirebaseAndLocal({ enabled: true, line1: l1, line2: l2, line3: l3, line4: l4, imgData: imgData });
-    alert('Shop Stamp sirf aapke account ke liye save ho gayi hai!');
+    alert('Shop Stamp sirf is account ke liye save ho gayi hai!');
   }
   function handleStampPhotoUpload(e) {
     const file = e.target.files && e.target.files[0];
@@ -3798,7 +3803,7 @@
       const im = new Image();
       im.onload = function() {
         const canvas = document.createElement('canvas');
-        const maxW = 400;
+        const maxW = 380;
         const scale = Math.min(1, maxW / im.width);
         canvas.width = Math.round(im.width * scale);
         canvas.height = Math.round(im.height * scale);
@@ -3816,7 +3821,7 @@
         cfg.enabled = true;
         cfg.imgData = canvas.toDataURL('image/png');
         persistStampToFirebaseAndLocal(cfg);
-        alert('Transparent Stamp aapke account mein save ho gayi hai!');
+        alert('Transparent Stamp sirf is account mein save ho gayi hai!');
       };
       im.src = ev.target.result;
     };
