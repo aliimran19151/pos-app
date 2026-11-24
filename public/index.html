@@ -500,108 +500,6 @@
           </div>
         </div>
 
-      <!-- CUSTOMER ENTRIES TAB -->
-      <div class="tab-pane fade" id="tabCustomerEntries">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-          <div>
-            <h4 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-primary me-2"></i>Customer Entries</h4>
-            <small class="text-muted">Sirf rozmarra ki asli entries (Opening balance aur imported dues yahan nahi dikhenge)</small>
-          </div>
-          <span class="badge bg-primary fs-6 px-3 py-2" id="custEntriesTotalBadge">Total: Rs. 0 (0)</span>
-        </div>
-
-        <div class="card border-0 shadow-sm p-2 p-md-3 mb-3 bg-white">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <button type="button" class="btn btn-sm btn-dark fw-bold cust-ent-filter-btn" data-filter="ALL" onclick="setCustEntryFilter('ALL', this)">All Entries</button>
-            <button type="button" class="btn btn-sm btn-outline-danger fw-bold cust-ent-filter-btn" data-filter="SALE" onclick="setCustEntryFilter('SALE', this)">Maal Becha (Sale)</button>
-            <button type="button" class="btn btn-sm btn-outline-success fw-bold cust-ent-filter-btn" data-filter="PAYMENT" onclick="setCustEntryFilter('PAYMENT', this)">Payment Received</button>
-            <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold cust-ent-filter-btn" data-filter="RETURN" onclick="setCustEntryFilter('RETURN', this)">Sale Return</button>
-          </div>
-          <div class="row g-2">
-            <div class="col-12 col-md-5">
-              <input type="text" id="custEntriesSearch" class="form-control form-control-sm" placeholder="Customer naam, Bill # ya detail likh kar search karein..." oninput="renderPartyEntries('customer')">
-            </div>
-            <div class="col-6 col-md-4">
-              <select id="custEntriesDateMode" class="form-select form-select-sm" onchange="onPartyEntryDateMode('customer')">
-                <option value="ALL">All Dates</option>
-                <option value="TODAY">Today Only</option>
-                <option value="CUSTOM">Specific Date</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-3">
-              <input type="date" id="custEntriesSpecificDate" class="form-control form-control-sm d-none" onchange="renderPartyEntries('customer')">
-            </div>
-          </div>
-        </div>
-
-        <div class="table-responsive bg-white rounded shadow-sm">
-          <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-dark small">
-              <tr>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Entry Type</th>
-                <th>Bill # / Details</th>
-                <th class="text-end">Amount</th>
-              </tr>
-            </thead>
-            <tbody id="custEntriesTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- SUPPLIER ENTRIES TAB -->
-      <div class="tab-pane fade" id="tabSupplierEntries">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-          <div>
-            <h4 class="fw-bold mb-0"><i class="fa-solid fa-receipt text-success me-2"></i>Supplier Entries</h4>
-            <small class="text-muted">Sirf rozmarra ki asli entries (Opening balance aur imported dues yahan nahi dikhenge)</small>
-          </div>
-          <span class="badge bg-success fs-6 px-3 py-2" id="suppEntriesTotalBadge">Total: Rs. 0 (0)</span>
-        </div>
-
-        <div class="card border-0 shadow-sm p-2 p-md-3 mb-3 bg-white">
-          <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-            <button type="button" class="btn btn-sm btn-dark fw-bold supp-ent-filter-btn" data-filter="ALL" onclick="setSuppEntryFilter('ALL', this)">All Entries</button>
-            <button type="button" class="btn btn-sm btn-outline-danger fw-bold supp-ent-filter-btn" data-filter="PURCHASE" onclick="setSuppEntryFilter('PURCHASE', this)">Maal Khareeda (Purchase)</button>
-            <button type="button" class="btn btn-sm btn-outline-success fw-bold supp-ent-filter-btn" data-filter="PAYMENT" onclick="setSuppEntryFilter('PAYMENT', this)">Payment Paid</button>
-            <button type="button" class="btn btn-sm btn-outline-warning text-dark fw-bold supp-ent-filter-btn" data-filter="RETURN" onclick="setSuppEntryFilter('RETURN', this)">Purchase Return</button>
-          </div>
-          <div class="row g-2">
-            <div class="col-12 col-md-5">
-              <input type="text" id="suppEntriesSearch" class="form-control form-control-sm" placeholder="Supplier naam, Bill # ya detail likh kar search karein..." oninput="renderPartyEntries('supplier')">
-            </div>
-            <div class="col-6 col-md-4">
-              <select id="suppEntriesDateMode" class="form-select form-select-sm" onchange="onPartyEntryDateMode('supplier')">
-                <option value="ALL">All Dates</option>
-                <option value="TODAY">Today Only</option>
-                <option value="CUSTOM">Specific Date</option>
-              </select>
-            </div>
-            <div class="col-6 col-md-3">
-              <input type="date" id="suppEntriesSpecificDate" class="form-control form-control-sm d-none" onchange="renderPartyEntries('supplier')">
-            </div>
-          </div>
-        </div>
-
-        <div class="table-responsive bg-white rounded shadow-sm">
-          <table class="table table-hover table-sm align-middle mb-0">
-            <thead class="table-dark small">
-              <tr>
-                <th>Date</th>
-                <th>Supplier</th>
-                <th>Entry Type</th>
-                <th>Bill # / Details</th>
-                <th class="text-end">Amount</th>
-              </tr>
-            </thead>
-            <tbody id="suppEntriesTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-
-
         <div class="tab-pane fade" id="tabLedger">
 
           <h4 class="fw-bold mb-3">Party Ledger Search</h4>
@@ -755,6 +653,44 @@
         </div>
 
         <div class="tab-pane fade" id="tabReports">
+
+        <div class="card border-0 shadow-sm px-3 py-2 mb-3" id="shopStampSettingsCard">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-stamp text-primary"></i>
+              <span class="fw-bold small">PDF Stamp</span>
+              <div class="form-check form-switch mb-0 ms-1">
+                <input class="form-check-input" type="checkbox" id="stampEnabledToggle" onchange="saveShopStampSettings()">
+              </div>
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="toggleStampEditorBox()">
+              <i class="fa-solid fa-pen-to-square me-1"></i> Edit / Stamp
+            </button>
+          </div>
+          <div id="stampEditorCollapse" style="display:none;" class="mt-2 pt-2 border-top">
+            <div class="row g-2 align-items-center">
+              <div class="col-12 col-md-7">
+                <input type="text" id="stampLine1" class="form-control form-control-sm mb-1" placeholder="Shop Name (e.g. Al-Madina Traders)">
+                <input type="text" id="stampLine2" class="form-control form-control-sm mb-1" placeholder="Proprietor / Tagline">
+                <input type="text" id="stampLine3" class="form-control form-control-sm mb-1" placeholder="Shop Address">
+                <input type="text" id="stampLine4" class="form-control form-control-sm mb-2" placeholder="Mobile Number">
+                <div class="d-flex flex-wrap gap-2">
+                  <button type="button" class="btn btn-sm btn-primary fw-bold" onclick="generateTextStampAndSave()">Save Text Stamp</button>
+                  <label class="btn btn-sm btn-outline-secondary fw-bold mb-0">
+                    Upload Photo
+                    <input type="file" id="stampFileInput" accept="image/*" class="d-none" onchange="handleStampPhotoUpload(event)">
+                  </label>
+                  <button type="button" id="btnRemoveStamp" class="btn btn-sm btn-outline-danger d-none" onclick="clearShopStamp()">Remove</button>
+                </div>
+              </div>
+              <div class="col-12 col-md-5 text-center">
+                <img id="shopStampPreviewImg" src="" alt="Stamp" style="max-height:80px; max-width:100%; display:none; border:1px dashed #cbd5e1; padding:3px; background:#fff;">
+                <div id="shopStampEmptyMsg" class="text-muted small py-2">No stamp saved</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
           <h4 class="fw-bold mb-3">Reports & Data Backup</h4>
           <div class="row g-3">
             <div class="col-12 col-md-4"><div class="card card-stat p-3 bg-white text-center"><i class="fa-solid fa-file-excel text-success fa-2x mb-2"></i><button onclick="exportToExcel()" class="btn btn-sm btn-success fw-bold w-100">Excel Export</button></div></div>
@@ -3720,41 +3656,172 @@
     });
   }
 
-
-  function toggleSubNav(boxId, arrId) {
-    const box = document.getElementById(boxId);
-    const arr = document.getElementById(arrId);
-    if (!box) return;
-    const isHidden = (box.style.display === 'none' || box.style.display === '');
-    box.style.display = isHidden ? 'block' : 'none';
-    if (arr) {
-      arr.className = isHidden ? 'fa-solid fa-chevron-up small' : 'fa-solid fa-chevron-down small';
-    }
-  }
-
 </script>
 
-<style>
-  #shopStampSettingsCard { padding: 10px 14px !important; }
-  #shopStampSettingsCard.stamp-collapsed .row { display: none !important; }
-  #shopStampSettingsCard.stamp-collapsed small.text-muted { display: none !important; }
-  #shopStampSettingsCard h5 { font-size: 14px !important; }
-</style>
 <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const card = document.getElementById('shopStampSettingsCard');
-    if (card) {
-      card.classList.add('stamp-collapsed');
-      const header = card.querySelector('.d-flex');
-      if (header && !document.getElementById('btnToggleStampBox')) {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.id = 'btnToggleStampBox';
-        btn.className = 'btn btn-sm btn-outline-primary py-0 px-2';
-        btn.innerHTML = '<i class="fa-solid fa-pen-to-square me-1"></i> Edit / Stamp';
-        btn.onclick = () => card.classList.toggle('stamp-collapsed');
-        header.appendChild(btn);
+  function toggleStampEditorBox() {
+    const el = document.getElementById('stampEditorCollapse');
+    if (el) el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+  }
+  function getStampStorageKey() {
+    const uid = (typeof currentUser !== 'undefined' && currentUser && currentUser.uid) ? currentUser.uid : 'default';
+    return 'pos_shop_stamp_cfg_' + uid;
+  }
+  function getActiveShopStampConfig() {
+    try {
+      const raw = localStorage.getItem(getStampStorageKey());
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return { enabled: false, line1: '', line2: '', line3: '', line4: '', imgData: '' };
+  }
+  function renderStampCanvasDataUrl(l1, l2, l3, l4) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 560;
+    canvas.height = 210;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#1e293b';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 38px Georgia, serif';
+    ctx.fillText((l1 || '').toUpperCase(), 280, 48);
+    ctx.font = 'bold 24px Arial, sans-serif';
+    ctx.fillText(l2 || '', 280, 84);
+    ctx.font = '21px Arial, sans-serif';
+    const addr = String(l3 || '');
+    if (addr.length > 36 && addr.includes(',')) {
+      const idx = addr.indexOf(',', 22);
+      if (idx > 0) {
+        ctx.fillText(addr.slice(0, idx + 1).trim(), 280, 118);
+        ctx.fillText(addr.slice(idx + 1).trim(), 280, 148);
+        ctx.font = 'bold 25px Arial, sans-serif';
+        ctx.fillText(l4 || '', 280, 184);
+        return canvas.toDataURL('image/png');
       }
+    }
+    ctx.fillText(addr, 280, 120);
+    ctx.font = 'bold 25px Arial, sans-serif';
+    ctx.fillText(l4 || '', 280, 160);
+    return canvas.toDataURL('image/png');
+  }
+  function applyStampConfigToDOM(cfg) {
+    const tog = document.getElementById('stampEnabledToggle');
+    const l1 = document.getElementById('stampLine1');
+    const l2 = document.getElementById('stampLine2');
+    const l3 = document.getElementById('stampLine3');
+    const l4 = document.getElementById('stampLine4');
+    const img = document.getElementById('shopStampPreviewImg');
+    const emptyMsg = document.getElementById('shopStampEmptyMsg');
+    const rmBtn = document.getElementById('btnRemoveStamp');
+    if (tog) tog.checked = !!cfg.enabled;
+    if (l1) l1.value = cfg.line1 || '';
+    if (l2) l2.value = cfg.line2 || '';
+    if (l3) l3.value = cfg.line3 || '';
+    if (l4) l4.value = cfg.line4 || '';
+    if (img && emptyMsg) {
+      if (cfg.imgData) {
+        img.src = cfg.imgData;
+        img.style.display = 'inline-block';
+        emptyMsg.style.display = 'none';
+        if (rmBtn) rmBtn.classList.remove('d-none');
+      } else {
+        img.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        if (rmBtn) rmBtn.classList.add('d-none');
+      }
+    }
+  }
+  function loadShopStampUI() {
+    try {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
+        db.collection('users').doc(currentUser.uid).get().then(doc => {
+          if (doc.exists && doc.data().shopStampConfig) {
+            try { localStorage.setItem(getStampStorageKey(), JSON.stringify(doc.data().shopStampConfig)); } catch (e) {}
+            applyStampConfigToDOM(doc.data().shopStampConfig);
+          }
+        }).catch(() => {});
+      }
+    } catch (e) {}
+    applyStampConfigToDOM(getActiveShopStampConfig());
+  }
+  function persistStampToFirebaseAndLocal(cfg) {
+    try { localStorage.setItem(getStampStorageKey(), JSON.stringify(cfg)); } catch (e) {}
+    try {
+      if (typeof db !== 'undefined' && typeof currentUser !== 'undefined' && currentUser && currentUser.uid) {
+        db.collection('users').doc(currentUser.uid).set({ shopStampConfig: cfg }, { merge: true }).catch(() => {});
+      }
+    } catch (e) {}
+    applyStampConfigToDOM(cfg);
+  }
+  function saveShopStampSettings() {
+    const cfg = getActiveShopStampConfig();
+    const tog = document.getElementById('stampEnabledToggle');
+    cfg.enabled = tog ? tog.checked : false;
+    persistStampToFirebaseAndLocal(cfg);
+  }
+  function generateTextStampAndSave() {
+    const l1 = (document.getElementById('stampLine1')?.value || '').trim();
+    const l2 = (document.getElementById('stampLine2')?.value || '').trim();
+    const l3 = (document.getElementById('stampLine3')?.value || '').trim();
+    const l4 = (document.getElementById('stampLine4')?.value || '').trim();
+    if (!l1 && !l2) { alert('Kam az kam Shop Name likhein!'); return; }
+    const imgData = renderStampCanvasDataUrl(l1, l2, l3, l4);
+    persistStampToFirebaseAndLocal({ enabled: true, line1: l1, line2: l2, line3: l3, line4: l4, imgData: imgData });
+    alert('Shop Stamp sirf aapke account ke liye save ho gayi hai!');
+  }
+  function handleStampPhotoUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      const im = new Image();
+      im.onload = function() {
+        const canvas = document.createElement('canvas');
+        const maxW = 520;
+        const scale = Math.min(1, maxW / im.width);
+        canvas.width = Math.round(im.width * scale);
+        canvas.height = Math.round(im.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
+        const imgd = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgd.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const avg = (d[i] + d[i + 1] + d[i + 2]) / 3;
+          if (avg > 165) { d[i + 3] = 0; }
+          else { d[i] = 25; d[i + 1] = 35; d[i + 2] = 55; }
+        }
+        ctx.putImageData(imgd, 0, 0);
+        const cfg = getActiveShopStampConfig();
+        cfg.enabled = true;
+        cfg.imgData = canvas.toDataURL('image/png');
+        persistStampToFirebaseAndLocal(cfg);
+        alert('Transparent Stamp aapke account mein save ho gayi hai!');
+      };
+      im.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+  function clearShopStamp() {
+    persistStampToFirebaseAndLocal({ enabled: false, line1: '', line2: '', line3: '', line4: '', imgData: '' });
+  }
+  window.addEventListener('load', () => {
+    setTimeout(loadShopStampUI, 1500);
+    if (window.jspdf && window.jspdf.jsPDF && !window.jspdf.jsPDF.prototype._stampHooked) {
+      const origSave = window.jspdf.jsPDF.prototype.save;
+      window.jspdf.jsPDF.prototype.save = function(...args) {
+        try {
+          const cfg = getActiveShopStampConfig();
+          if (cfg && cfg.enabled && cfg.imgData) {
+            const pageCount = this.internal.getNumberOfPages();
+            this.setPage(pageCount);
+            const pageW = this.internal.pageSize.getWidth();
+            const pageH = this.internal.pageSize.getHeight();
+            const stampW = 54, stampH = 21;
+            this.addImage(cfg.imgData, 'PNG', pageW - stampW - 14, pageH - stampH - 14, stampW, stampH);
+          }
+        } catch (err) {}
+        return origSave.apply(this, args);
+      };
+      window.jspdf.jsPDF.prototype._stampHooked = true;
     }
   });
 </script>
