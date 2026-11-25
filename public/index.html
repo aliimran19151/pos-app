@@ -65,7 +65,7 @@
   <meta name="apple-mobile-web-app-title" content="Smart POS">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3144/3144456.png">
 <style>
-  /* Cross-Device (PC, iPhone iOS, Android) Party Auto-Suggest & Smart Bill Styles */
+  /* Cross-Device (PC, iPhone iOS, Android) Adaptive Layout & Auto-Suggest */
   .sb-suggest-wrap { position: relative; }
   .sb-suggest-menu {
     position: absolute;
@@ -75,13 +75,13 @@
     z-index: 2050;
     background: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.16);
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
     max-height: 220px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     display: none;
-    margin-top: 2px;
+    margin-top: 3px;
   }
   .sb-suggest-item {
     padding: 10px 12px;
@@ -92,21 +92,16 @@
     align-items: center;
     gap: 8px;
     font-size: 14px;
-    min-height: 42px;
+    min-height: 44px;
     user-select: none;
   }
   .sb-suggest-item:last-child { border-bottom: none; }
   .sb-suggest-item:hover, .sb-suggest-item:active { background: #eff6ff; }
-  /* Prevent iOS Safari auto-zoom on input focus */
-  @media screen and (max-width: 768px) {
-    #entryName, #sbPartyInput, #sbPayPartyInput, #sbItemsBody input, #sbDiscount, #sbCharges, #sbPaidNow, #sbPayAmount {
-      font-size: 16px !important;
-    }
-  }
+
   .sb-chip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     background: #f8fafc;
     border: 1px solid #cbd5e1;
     color: #1e293b;
@@ -115,17 +110,102 @@
     font-size: 12.5px;
     font-weight: 600;
     cursor: pointer;
-    min-height: 34px;
-    transition: all 0.15s;
+    min-height: 36px;
   }
-  .sb-chip:hover, .sb-chip:active {
-    background: #dbeafe;
-    border-color: #3b82f6;
-    color: #1d4ed8;
+  .sb-chip:hover, .sb-chip:active { background: #dbeafe; border-color: #3b82f6; color: #1d4ed8; }
+
+  /* MOBILE NATIVE APP EXPERIENCE (< 768px) */
+  @media screen and (max-width: 767.98px) {
+    #entryName, #sbPartyInput, #sbPayPartyInput, #sbItemsBody input, #sbDiscount, #sbCharges, #sbPaidNow, #sbPayAmount {
+      font-size: 16px !important;
+    }
+    .sb-mobile-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+    .sb-m-tab {
+      border: none;
+      background: transparent;
+      color: #475569;
+      font-size: 11.5px;
+      font-weight: 700;
+      padding: 8px 4px;
+      border-radius: 8px;
+      text-align: center;
+      line-height: 1.2;
+    }
+    .sb-m-tab.active {
+      background: #ffffff;
+      color: #0f172a;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+    /* Hide desktop table header on mobile & turn each row into a clean card */
+    #sbItemsTable thead { display: none; }
+    #sbItemsTable, #sbItemsTable tbody { display: block; width: 100%; border: none !important; }
+    #sbItemsBody tr {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 1.1fr 1.1fr;
+      gap: 6px;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1 !important;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    #sbItemsBody td { border: none !important; padding: 0 !important; }
+    #sbItemsBody td.sb-cell-num { display: none; }
+    #sbItemsBody td.sb-cell-item { grid-column: 1 / 4; }
+    #sbItemsBody td.sb-cell-del { grid-column: 4 / 5; text-align: right; }
+    #sbItemsBody td.sb-cell-unit::before { content: "Unit"; display: block; font-size: 10px; color: #64748b; font-weight: 700; }
+    #sbItemsBody td.sb-cell-qty::before { content: "Qty"; display: block; font-size: 10px; color: #64748b; font-weight: 700; }
+    #sbItemsBody td.sb-cell-rate::before { content: "Rate"; display: block; font-size: 10px; color: #64748b; font-weight: 700; }
+    #sbItemsBody td.sb-cell-amt::before { content: "Amount"; display: block; font-size: 10px; color: #64748b; font-weight: 700; }
+    #sbItemsBody td.sb-cell-amt {
+      background: #e0f2fe;
+      border-radius: 6px;
+      padding: 4px 6px !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #0369a1;
+    }
+    .sb-mobile-hide { display: none !important; }
+    .sb-sticky-footer {
+      position: sticky;
+      bottom: 0;
+      z-index: 1020;
+      background: #0f172a;
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-top: 10px;
+      box-shadow: 0 -4px 16px rgba(15,23,42,0.2);
+    }
   }
-  .sb-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+
+  /* PC / DESKTOP WORKSTATION EXPERIENCE (>= 768px) */
+  @media screen and (min-width: 768px) {
+    .sb-mobile-tabs { display: none !important; }
+    .sb-section-pane { display: block !important; }
+    .sb-desktop-grid {
+      display: grid;
+      grid-template-columns: 1.75fr 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    .sb-sticky-footer {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-top: 12px;
+    }
   }
 </style>
 </head>
@@ -721,39 +801,59 @@
         </div>
 
         <div class="tab-pane fade" id="tabSmartBill">
-          <!-- Top Banner -->
-          <div class="card border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #fff;">
-            <div class="card-body p-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+          <!-- Compact Header Bar -->
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2 px-3 mb-2 rounded-3 shadow-sm" style="background: #0f172a; color: #fff;">
+            <div class="d-flex align-items-center gap-2">
+              <i class="fa-solid fa-file-invoice-dollar text-warning fs-5"></i>
               <div>
-                <h5 class="fw-bold mb-0"><i class="fa-solid fa-file-invoice-dollar text-warning me-2"></i>Smart Bill &amp; Invoice Maker</h5>
-                <small class="text-light opacity-75">Auto-Learn Items • Live Khata Sync • Branded A4 PDF • WhatsApp Ready</small>
+                <div class="fw-bold" style="font-size: 15px; line-height: 1.1;">Smart Bill &amp; Invoice</div>
+                <small class="text-light opacity-75 d-none d-md-inline" style="font-size: 11.5px;">PC Workstation &amp; Mobile App Mode</small>
               </div>
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <div class="form-check form-switch bg-white bg-opacity-10 px-3 py-1 rounded-pill mb-0">
-                  <input class="form-check-input" type="checkbox" id="sbInvToggle" onchange="toggleSmartBillInv()">
-                  <label class="form-check-label small fw-bold text-white" for="sbInvToggle">Inventory Mode</label>
-                </div>
-                <span id="sbInvBadge" class="badge bg-success">Auto-Learn ON</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" id="sbInvToggle" onchange="toggleSmartBillInv()">
+                <label class="form-check-label small fw-bold text-white" for="sbInvToggle">Stock</label>
               </div>
+              <span id="sbInvBadge" class="badge bg-success" style="font-size: 10.5px;">Auto-Learn</span>
             </div>
           </div>
 
-          <div class="row g-3">
-            <!-- Left / Main Bill Builder -->
-            <div class="col-12 col-lg-8">
-              <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white border-bottom py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
-                  <div class="btn-group btn-group-sm" role="group">
-                    <input type="radio" class="btn-check" name="sbRoleRadio" id="sbRoleCust" value="Customer" checked onchange="onSmartBillRoleChange()">
-                    <label class="btn btn-outline-primary fw-bold" for="sbRoleCust"><i class="fa-solid fa-user me-1"></i>Customer Sale Bill</label>
-                    <input type="radio" class="btn-check" name="sbRoleRadio" id="sbRoleSupp" value="Supplier" onchange="onSmartBillRoleChange()">
-                    <label class="btn btn-outline-warning text-dark fw-bold" for="sbRoleSupp"><i class="fa-solid fa-truck me-1"></i>Supplier Purchase</label>
-                  </div>
-                  <span id="sbLivePartyBalBadge" class="badge bg-light text-dark border">Prev Due: Rs. 0</span>
-                </div>
+          <!-- Mobile-Only 4 Clean Sub-Tabs (Hidden on PC) -->
+          <div class="sb-mobile-tabs">
+            <button type="button" class="sb-m-tab active" data-sb-pane="sbPaneBill" onclick="switchSbMobilePane('sbPaneBill', this)">
+              <i class="fa-solid fa-plus-circle d-block mb-1"></i>New Bill
+            </button>
+            <button type="button" class="sb-m-tab" data-sb-pane="sbPanePay" onclick="switchSbMobilePane('sbPanePay', this)">
+              <i class="fa-solid fa-hand-holding-dollar d-block mb-1"></i>Quick Pay
+            </button>
+            <button type="button" class="sb-m-tab" data-sb-pane="sbPaneItems" onclick="switchSbMobilePane('sbPaneItems', this)">
+              <i class="fa-solid fa-bolt d-block mb-1"></i>Items
+            </button>
+            <button type="button" class="sb-m-tab" data-sb-pane="sbPaneHistory" onclick="switchSbMobilePane('sbPaneHistory', this)">
+              <i class="fa-solid fa-clock-rotate-left d-block mb-1"></i>History
+            </button>
+          </div>
 
+          <!-- Adaptive Grid: 2-Column on PC, Single Active Tab on Mobile -->
+          <div class="sb-desktop-grid">
+            <!-- LEFT / MAIN COLUMN: NEW BILL BUILDER -->
+            <div id="sbPaneBill" class="sb-section-pane">
+              <div class="card border-0 shadow-sm mb-3">
                 <div class="card-body p-2 p-md-3">
-                  <div class="row g-2 mb-3">
+                  <!-- Role Switch + Live Balance -->
+                  <div class="d-flex justify-content-between align-items-center gap-2 mb-2 pb-2 border-bottom">
+                    <div class="btn-group btn-group-sm" role="group">
+                      <input type="radio" class="btn-check" name="sbRoleRadio" id="sbRoleCust" value="Customer" checked onchange="onSmartBillRoleChange()">
+                      <label class="btn btn-outline-primary fw-bold" for="sbRoleCust">Sale Bill</label>
+                      <input type="radio" class="btn-check" name="sbRoleRadio" id="sbRoleSupp" value="Supplier" onchange="onSmartBillRoleChange()">
+                      <label class="btn btn-outline-warning text-dark fw-bold" for="sbRoleSupp">Purchase</label>
+                    </div>
+                    <span id="sbLivePartyBalBadge" class="badge bg-light text-dark border">Prev Due: Rs. 0</span>
+                  </div>
+
+                  <!-- Party, Bill #, Date -->
+                  <div class="row g-2 mb-2">
                     <div class="col-12 col-md-5 sb-suggest-wrap">
                       <label class="form-label small fw-bold text-muted mb-1" id="sbPartyLabel">Customer Name *</label>
                       <input type="text" id="sbPartyInput" class="form-control form-control-sm fw-bold" placeholder="Search or type name..." autocomplete="off"
@@ -762,27 +862,27 @@
                         onblur="setTimeout(hideSbPartyDropdown, 180)">
                       <div id="sbPartyDropdown" class="sb-suggest-menu"></div>
                     </div>
-                    <div class="col-6 col-md-4">
-                      <label class="form-label small fw-bold text-muted mb-1">Bill / Invoice #</label>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label small fw-bold text-muted mb-1">Bill #</label>
                       <input type="text" id="sbBillNo" class="form-control form-control-sm fw-bold text-primary" value="INV-101">
                     </div>
-                    <div class="col-6 col-md-3">
+                    <div class="col-6 col-md-4">
                       <label class="form-label small fw-bold text-muted mb-1">Date</label>
                       <input type="date" id="sbDate" class="form-control form-control-sm">
                     </div>
                   </div>
 
-                  <!-- Items Table -->
-                  <div class="sb-table-wrap border rounded mb-2">
-                    <table class="table table-sm table-bordered align-middle mb-0" style="min-width: 520px;">
+                  <!-- Adaptive Items Table (Wide Table on PC, Clean Stacked Cards on Mobile) -->
+                  <div class="mb-2">
+                    <table id="sbItemsTable" class="table table-sm table-bordered align-middle mb-0">
                       <thead class="table-light">
                         <tr class="small text-muted">
                           <th style="width: 34px;" class="text-center">#</th>
                           <th>Item / Description</th>
-                          <th style="width: 75px;" class="text-center">Unit</th>
-                          <th style="width: 75px;" class="text-center">Qty</th>
-                          <th style="width: 95px;" class="text-end">Rate</th>
-                          <th style="width: 100px;" class="text-end">Total</th>
+                          <th style="width: 82px;" class="text-center">Unit</th>
+                          <th style="width: 80px;" class="text-center">Qty</th>
+                          <th style="width: 100px;" class="text-end">Rate</th>
+                          <th style="width: 105px;" class="text-end">Total</th>
                           <th style="width: 36px;"></th>
                         </tr>
                       </thead>
@@ -791,84 +891,76 @@
                   </div>
                   <datalist id="sbItemsDatalist"></datalist>
 
-                  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                  <div class="d-flex justify-content-between align-items-center gap-2 mb-2">
                     <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="addSmartBillRow()">
-                      <i class="fa-solid fa-plus me-1"></i>Add Line (or press Enter)
+                      <i class="fa-solid fa-plus me-1"></i>Add Item
                     </button>
-                    <div class="small text-muted">Sub-Total: <strong class="text-dark" id="sbSubTotal">Rs. 0</strong></div>
+                    <button type="button" class="btn btn-sm btn-light border fw-bold text-muted" data-bs-toggle="collapse" data-bs-target="#sbExtraFieldsCollapse">
+                      <i class="fa-solid fa-sliders me-1"></i>Discount / Paid Now
+                    </button>
                   </div>
 
-                  <!-- Discount, Charges, Paid Now -->
-                  <div class="row g-2 p-2 rounded bg-light border mb-3">
-                    <div class="col-6 col-md-3">
-                      <label class="form-label small fw-bold text-muted mb-1">Discount (Rs.)</label>
-                      <input type="number" inputmode="decimal" id="sbDiscount" class="form-control form-control-sm" value="0" min="0" oninput="calcSmartBillTotals()">
-                    </div>
-                    <div class="col-6 col-md-3">
-                      <label class="form-label small fw-bold text-muted mb-1">Delivery / Charges</label>
-                      <input type="number" inputmode="decimal" id="sbCharges" class="form-control form-control-sm" value="0" min="0" oninput="calcSmartBillTotals()">
-                    </div>
-                    <div class="col-6 col-md-3">
-                      <label class="form-label small fw-bold text-success mb-1" id="sbPaidNowLabel">Paid Now (Cash/Bank)</label>
-                      <input type="number" inputmode="decimal" id="sbPaidNow" class="form-control form-control-sm border-success" value="0" min="0" oninput="calcSmartBillTotals()">
-                    </div>
-                    <div class="col-6 col-md-3">
-                      <label class="form-label small fw-bold text-muted mb-1">Payment Method</label>
-                      <select id="sbPayMethod" class="form-select form-select-sm">
-                        <option value="Cash">Cash</option>
-                        <option value="Online / Bank">Online / Bank</option>
-                        <option value="JazzCash / EasyPaisa">JazzCash / EasyPaisa</option>
-                        <option value="Cheque">Cheque</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <!-- Totals Summary Bar -->
-                  <div class="row g-2 text-center mb-3">
-                    <div class="col-4">
-                      <div class="p-2 rounded border bg-white">
-                        <div class="small text-muted fw-bold">Net Bill</div>
-                        <div class="fs-6 fw-bold text-primary" id="sbGrandTotal">Rs. 0</div>
+                  <!-- Collapsible Discount / Charges / Paid Now (Keeps Mobile Clean, Openable Anytime) -->
+                  <div class="collapse show" id="sbExtraFieldsCollapse">
+                    <div class="row g-2 p-2 rounded bg-light border mb-2">
+                      <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-muted mb-1">Discount</label>
+                        <input type="number" inputmode="decimal" id="sbDiscount" class="form-control form-control-sm" value="0" min="0" oninput="calcSmartBillTotals()">
                       </div>
-                    </div>
-                    <div class="col-4">
-                      <div class="p-2 rounded border bg-white">
-                        <div class="small text-muted fw-bold">Bill Due</div>
-                        <div class="fs-6 fw-bold text-danger" id="sbBillRemaining">Rs. 0</div>
+                      <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-muted mb-1">Charges</label>
+                        <input type="number" inputmode="decimal" id="sbCharges" class="form-control form-control-sm" value="0" min="0" oninput="calcSmartBillTotals()">
                       </div>
-                    </div>
-                    <div class="col-4">
-                      <div class="p-2 rounded border bg-dark text-white">
-                        <div class="small opacity-75 fw-bold">Total Khata Bal</div>
-                        <div class="fs-6 fw-bold text-warning" id="sbProjectedTotalBal">Rs. 0</div>
+                      <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-success mb-1" id="sbPaidNowLabel">Paid Now</label>
+                        <input type="number" inputmode="decimal" id="sbPaidNow" class="form-control form-control-sm border-success" value="0" min="0" oninput="calcSmartBillTotals()">
+                      </div>
+                      <div class="col-6 col-md-3">
+                        <label class="form-label small fw-bold text-muted mb-1">Method</label>
+                        <select id="sbPayMethod" class="form-select form-select-sm">
+                          <option value="Cash">Cash</option>
+                          <option value="Online / Bank">Online / Bank</option>
+                          <option value="JazzCash / EasyPaisa">JazzCash / EasyPaisa</option>
+                          <option value="Cheque">Cheque</option>
+                        </select>
                       </div>
                     </div>
                   </div>
 
-                  <!-- Action Buttons -->
-                  <div class="d-flex flex-wrap gap-2 justify-content-end">
-                    <button type="button" class="btn btn-outline-secondary btn-sm fw-bold" onclick="resetSmartBillForm()">
-                      <i class="fa-solid fa-rotate-left me-1"></i>Clear
-                    </button>
-                    <button type="button" class="btn btn-success fw-bold px-3" onclick="saveSmartBill(false)">
-                      <i class="fa-solid fa-check me-1"></i>Save to Khata
-                    </button>
-                    <button type="button" class="btn btn-primary fw-bold px-3" onclick="saveSmartBill(true)">
-                      <i class="fa-solid fa-file-pdf me-1"></i>Save &amp; Download PDF
-                    </button>
+                  <!-- Totals + Action Bar (Sticky Dark Bar on Mobile, Clean Footer on PC) -->
+                  <div class="sb-sticky-footer">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                      <div class="d-flex gap-3 align-items-center">
+                        <div>
+                          <div style="font-size: 10.5px; opacity: 0.75;">NET BILL</div>
+                          <div class="fw-bold fs-5 text-info" id="sbGrandTotal">Rs. 0</div>
+                        </div>
+                        <div class="border-start ps-3">
+                          <div style="font-size: 10.5px; opacity: 0.75;">TOTAL KHATA</div>
+                          <div class="fw-bold fs-6 text-warning" id="sbProjectedTotalBal">Rs. 0</div>
+                        </div>
+                      </div>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary fw-bold" onclick="resetSmartBillForm()" title="Clear">
+                          <i class="fa-solid fa-rotate-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success fw-bold px-3" onclick="saveSmartBill(false)">
+                          <i class="fa-solid fa-check me-1"></i>Save
+                        </button>
+                        <button type="button" class="btn btn-sm btn-primary fw-bold px-3" onclick="saveSmartBill(true)">
+                          <i class="fa-solid fa-file-pdf me-1"></i>Save &amp; PDF
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
-                  <!-- Saved Bill Preview / WhatsApp Share Strip -->
-                  <div id="sbLastSavedBox" class="alert alert-success mt-3 mb-0 d-none">
+                  <!-- Last Saved Quick Share Bar -->
+                  <div id="sbLastSavedBox" class="alert alert-success mt-2 mb-0 py-2 px-3 d-none">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                       <div id="sbLastSavedText" class="small fw-bold"></div>
                       <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-sm btn-dark fw-bold" onclick="downloadLastSmartBillPDF()">
-                          <i class="fa-solid fa-download me-1"></i>PDF
-                        </button>
-                        <button type="button" class="btn btn-sm btn-success fw-bold" onclick="copyLastSmartBillWhatsApp()">
-                          <i class="fa-brands fa-whatsapp me-1"></i>Copy WhatsApp
-                        </button>
+                        <button type="button" class="btn btn-sm btn-dark fw-bold py-0 px-2" onclick="downloadLastSmartBillPDF()">PDF</button>
+                        <button type="button" class="btn btn-sm btn-success fw-bold py-0 px-2" onclick="copyLastSmartBillWhatsApp()"><i class="fa-brands fa-whatsapp me-1"></i>Copy</button>
                       </div>
                     </div>
                   </div>
@@ -876,82 +968,88 @@
               </div>
             </div>
 
-            <!-- Right Column: Auto-Learn Items & Quick Bill # Payment -->
-            <div class="col-12 col-lg-4">
-              <!-- Auto-Learned Items Memory -->
-              <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center">
-                  <span class="fw-bold small text-dark"><i class="fa-solid fa-bolt text-warning me-1"></i>Auto-Learned Items (Tap to Add)</span>
-                  <span class="badge bg-light text-muted border" id="sbLearnedCount">0</span>
-                </div>
-                <div class="card-body p-2 p-md-3">
-                  <div id="sbChipsBox" class="d-flex flex-wrap gap-1"></div>
+            <!-- RIGHT COLUMN ON PC / SEPARATE SUB-TABS ON MOBILE -->
+            <div>
+              <!-- PANE: AUTO-LEARNED ITEMS -->
+              <div id="sbPaneItems" class="sb-section-pane sb-mobile-hide">
+                <div class="card border-0 shadow-sm mb-3">
+                  <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center">
+                    <span class="fw-bold small text-dark"><i class="fa-solid fa-bolt text-warning me-1"></i>Saved Items (Tap to Add)</span>
+                    <span class="badge bg-light text-muted border" id="sbLearnedCount">0</span>
+                  </div>
+                  <div class="card-body p-2 p-md-3">
+                    <div id="sbChipsBox" class="d-flex flex-wrap gap-1"></div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Quick Bill-Wise Payment Receive -->
-              <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-success bg-opacity-10 py-2 px-3">
-                  <span class="fw-bold small text-success"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Quick Payment (Pending Bill #)</span>
-                </div>
-                <div class="card-body p-2 p-md-3">
-                  <div class="mb-2 sb-suggest-wrap">
-                    <label class="form-label small fw-bold text-muted mb-1">Party Name</label>
-                    <input type="text" id="sbPayPartyInput" class="form-control form-control-sm" placeholder="Select customer..." autocomplete="off"
-                      onfocus="renderSbPayPartyDropdown()"
-                      oninput="updateSbPendingBillsDropdown(); renderSbPayPartyDropdown();"
-                      onblur="setTimeout(hideSbPayPartyDropdown, 180)">
-                    <div id="sbPayPartyDropdown" class="sb-suggest-menu"></div>
+              <!-- PANE: QUICK PAYMENT -->
+              <div id="sbPanePay" class="sb-section-pane sb-mobile-hide">
+                <div class="card border-0 shadow-sm mb-3">
+                  <div class="card-header bg-success bg-opacity-10 py-2 px-3">
+                    <span class="fw-bold small text-success"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Quick Payment (Bill #)</span>
                   </div>
-                  <div class="mb-2">
-                    <label class="form-label small fw-bold text-muted mb-1">Pending Bill #</label>
-                    <select id="sbPendingBillSelect" class="form-select form-select-sm" onchange="onSbPendingBillSelect()">
-                      <option value="">General / On-Account</option>
-                    </select>
-                  </div>
-                  <div class="row g-2 mb-2">
-                    <div class="col-6">
-                      <label class="form-label small fw-bold text-muted mb-1">Amount (Rs.)</label>
-                      <input type="number" inputmode="decimal" id="sbPayAmount" class="form-control form-control-sm fw-bold" placeholder="0">
+                  <div class="card-body p-2 p-md-3">
+                    <div class="mb-2 sb-suggest-wrap">
+                      <label class="form-label small fw-bold text-muted mb-1">Customer Name</label>
+                      <input type="text" id="sbPayPartyInput" class="form-control form-control-sm" placeholder="Select customer..." autocomplete="off"
+                        onfocus="renderSbPayPartyDropdown()"
+                        oninput="updateSbPendingBillsDropdown(); renderSbPayPartyDropdown();"
+                        onblur="setTimeout(hideSbPayPartyDropdown, 180)">
+                      <div id="sbPayPartyDropdown" class="sb-suggest-menu"></div>
                     </div>
-                    <div class="col-6">
-                      <label class="form-label small fw-bold text-muted mb-1">Method</label>
-                      <select id="sbPayQuickMethod" class="form-select form-select-sm">
-                        <option value="Cash">Cash</option>
-                        <option value="Online / Bank">Online / Bank</option>
-                        <option value="JazzCash / EasyPaisa">JazzCash / EasyPaisa</option>
+                    <div class="mb-2">
+                      <label class="form-label small fw-bold text-muted mb-1">Pending Bill #</label>
+                      <select id="sbPendingBillSelect" class="form-select form-select-sm" onchange="onSbPendingBillSelect()">
+                        <option value="">General / On-Account</option>
                       </select>
                     </div>
+                    <div class="row g-2 mb-2">
+                      <div class="col-6">
+                        <label class="form-label small fw-bold text-muted mb-1">Amount (Rs.)</label>
+                        <input type="number" inputmode="decimal" id="sbPayAmount" class="form-control form-control-sm fw-bold" placeholder="0">
+                      </div>
+                      <div class="col-6">
+                        <label class="form-label small fw-bold text-muted mb-1">Method</label>
+                        <select id="sbPayQuickMethod" class="form-select form-select-sm">
+                          <option value="Cash">Cash</option>
+                          <option value="Online / Bank">Online / Bank</option>
+                          <option value="JazzCash / EasyPaisa">JazzCash / EasyPaisa</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button type="button" class="btn btn-success btn-sm w-100 fw-bold" onclick="saveSbQuickPayment()">
+                      <i class="fa-solid fa-check-circle me-1"></i>Record Payment
+                    </button>
                   </div>
-                  <button type="button" class="btn btn-success btn-sm w-100 fw-bold" onclick="saveSbQuickPayment()">
-                    <i class="fa-solid fa-check-circle me-1"></i>Record Payment to Khata
-                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Recent Smart Bills History -->
-          <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center">
-              <span class="fw-bold small"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i>Recent Smart Bills (Reprint PDF / WhatsApp)</span>
-            </div>
-            <div class="sb-table-wrap">
-              <table class="table table-sm table-hover align-middle mb-0 text-nowrap" style="font-size: 0.85rem;">
-                <thead class="table-light">
-                  <tr>
-                    <th class="ps-3">Date</th>
-                    <th>Bill #</th>
-                    <th>Party</th>
-                    <th>Items</th>
-                    <th class="text-end">Total</th>
-                    <th class="text-center pe-3">Invoice</th>
-                  </tr>
-                </thead>
-                <tbody id="sbHistoryTableBody">
-                  <tr><td colspan="6" class="text-center text-muted py-3">Koi Smart Bill abhi tak save nahi hua.</td></tr>
-                </tbody>
-              </table>
+          <!-- PANE: RECENT BILLS HISTORY -->
+          <div id="sbPaneHistory" class="sb-section-pane sb-mobile-hide">
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-white py-2 px-3">
+                <span class="fw-bold small"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i>Recent Bills (Reprint PDF)</span>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0 text-nowrap" style="font-size: 0.85rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th class="ps-3">Date</th>
+                      <th>Bill #</th>
+                      <th>Party</th>
+                      <th>Items</th>
+                      <th class="text-end">Total</th>
+                      <th class="text-center pe-3">PDF</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sbHistoryTableBody">
+                    <tr><td colspan="6" class="text-center text-muted py-3">Koi Smart Bill abhi tak save nahi hua.</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -4542,6 +4640,10 @@
     if (tbody && tbody.children.length === 0) {
       addSmartBillRow();
     }
+    if (window.innerWidth < 768) {
+      const ex = document.getElementById('sbExtraFieldsCollapse');
+      if (ex) ex.classList.remove('show');
+    }
     renderSmartBillChips();
     renderSmartBillHistory();
     onSmartBillPartyInput();
@@ -4641,7 +4743,18 @@
     }).join('');
   }
 
+  function switchSbMobilePane(paneId, btnEl) {
+    document.querySelectorAll('.sb-section-pane').forEach(el => el.classList.add('sb-mobile-hide'));
+    const target = document.getElementById(paneId);
+    if (target) target.classList.remove('sb-mobile-hide');
+    document.querySelectorAll('.sb-m-tab').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+  }
+
   function insertItemFromChip(itemName) {
+    // On mobile, switch back to New Bill pane automatically when user taps a saved item
+    const billTabBtn = document.querySelector('.sb-m-tab[data-sb-pane="sbPaneBill"]');
+    if (window.innerWidth < 768 && billTabBtn) switchSbMobilePane('sbPaneBill', billTabBtn);
     const rows = document.querySelectorAll('#sbItemsBody tr');
     for (let r of rows) {
       const inp = r.querySelector('.sb-i-name');
@@ -4660,9 +4773,10 @@
     const idx = tbody.children.length + 1;
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td class="text-center fw-bold text-muted sb-r-num">${idx}</td>
-      <td><input type="text" class="form-control form-control-sm sb-i-name" list="sbItemsDatalist" placeholder="Item name..." value="${prefillName.replace(/"/g, '&quot;')}" oninput="onSmartBillItemInput(this)"></td>
-      <td>
+      <td class="text-center fw-bold text-muted sb-r-num sb-cell-num">${idx}</td>
+      <td class="sb-cell-item"><input type="text" class="form-control form-control-sm fw-bold sb-i-name" list="sbItemsDatalist" placeholder="Item name..." value="${prefillName.replace(/"/g, '&quot;')}" oninput="onSmartBillItemInput(this)"></td>
+      <td class="sb-cell-del"><button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSmartBillRow(this)">×</button></td>
+      <td class="sb-cell-unit">
         <select class="form-select form-select-sm sb-i-unit">
           <option value="Suit">Suit</option>
           <option value="Gaz">Gaz</option>
@@ -4671,10 +4785,9 @@
           <option value="Kg">Kg</option>
         </select>
       </td>
-      <td><input type="number" inputmode="decimal" class="form-control form-control-sm text-center sb-i-qty" value="1" min="0" oninput="calcSmartBillTotals()" onkeydown="handleSbRowKey(event, this)"></td>
-      <td><input type="number" inputmode="decimal" class="form-control form-control-sm text-end sb-i-rate" value="0" min="0" oninput="calcSmartBillTotals()" onkeydown="handleSbRowKey(event, this)"></td>
-      <td class="text-end fw-bold sb-i-amt">0</td>
-      <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSmartBillRow(this)">×</button></td>
+      <td class="sb-cell-qty"><input type="number" inputmode="decimal" class="form-control form-control-sm text-center sb-i-qty" value="1" min="0" oninput="calcSmartBillTotals()" onkeydown="handleSbRowKey(event, this)"></td>
+      <td class="sb-cell-rate"><input type="number" inputmode="decimal" class="form-control form-control-sm text-end sb-i-rate" value="0" min="0" oninput="calcSmartBillTotals()" onkeydown="handleSbRowKey(event, this)"></td>
+      <td class="text-end fw-bold sb-i-amt sb-cell-amt">0</td>
     `;
     tbody.appendChild(tr);
     if (prefillName) {
