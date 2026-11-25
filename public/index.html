@@ -2081,8 +2081,11 @@
   }
 
   function updatePartySuggestions() {
-    let role = document.getElementById("entryRole").value;
+    let roleEl = document.getElementById("entryRole");
+    let role = roleEl ? roleEl.value : "Customer";
     let datalist = document.getElementById("partySuggestions");
+    if (typeof renderEntryPartyDropdown === "function") renderEntryPartyDropdown();
+    if (!datalist) return;
     datalist.innerHTML = "";
     
     let names = new Set();
@@ -4575,7 +4578,7 @@
   }
 
   // ============================================================
-  // 2. SMART BILL & INVOICE MAKER (PRO CROSS-DEVICE SYSTEM)
+  // 2. SMART BILL & INVOICE MAKER (CLEAN & ISOLATED MODULE)
   // ============================================================
   let sbLastSavedBill = null;
 
@@ -4626,6 +4629,16 @@
     return 'INV-' + (maxNum + 1);
   }
 
+  function switchSbMobilePane(paneId, btnEl) {
+    document.querySelectorAll('.sb-section-pane').forEach(el => el.classList.add('sb-mobile-hide'));
+    const target = document.getElementById(paneId);
+    if (target) target.classList.remove('sb-mobile-hide');
+    document.querySelectorAll('.sb-m-tab').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    if (paneId === 'sbPaneItems') renderSmartBillChips();
+    if (paneId === 'sbPaneHistory') renderSmartBillHistory();
+  }
+
   function initSmartBillTab() {
     const dtEl = document.getElementById('sbDate');
     if (dtEl && !dtEl.value) {
@@ -4654,7 +4667,7 @@
     const badge = document.getElementById('sbInvBadge');
     if (badge) {
       badge.className = on ? 'badge bg-warning text-dark' : 'badge bg-success';
-      badge.innerText = on ? 'Inventory ON' : 'Auto-Learn ON';
+      badge.innerText = on ? 'Inventory ON' : 'Auto-Learn';
     }
     renderSmartBillChips();
   }
@@ -4668,7 +4681,7 @@
     const lbl = document.getElementById('sbPartyLabel');
     const payLbl = document.getElementById('sbPaidNowLabel');
     if (lbl) lbl.innerText = role === 'Supplier' ? 'Supplier Name *' : 'Customer Name *';
-    if (payLbl) payLbl.innerText = role === 'Supplier' ? 'Paid to Supplier' : 'Paid Now (Received)';
+    if (payLbl) payLbl.innerText = role === 'Supplier' ? 'Paid to Supplier' : 'Paid Now';
     onSmartBillPartyInput();
   }
 
@@ -4743,16 +4756,7 @@
     }).join('');
   }
 
-  function switchSbMobilePane(paneId, btnEl) {
-    document.querySelectorAll('.sb-section-pane').forEach(el => el.classList.add('sb-mobile-hide'));
-    const target = document.getElementById(paneId);
-    if (target) target.classList.remove('sb-mobile-hide');
-    document.querySelectorAll('.sb-m-tab').forEach(b => b.classList.remove('active'));
-    if (btnEl) btnEl.classList.add('active');
-  }
-
   function insertItemFromChip(itemName) {
-    // On mobile, switch back to New Bill pane automatically when user taps a saved item
     const billTabBtn = document.querySelector('.sb-m-tab[data-sb-pane="sbPaneBill"]');
     if (window.innerWidth < 768 && billTabBtn) switchSbMobilePane('sbPaneBill', billTabBtn);
     const rows = document.querySelectorAll('#sbItemsBody tr');
@@ -4792,8 +4796,6 @@
     tbody.appendChild(tr);
     if (prefillName) {
       onSmartBillItemInput(tr.querySelector('.sb-i-name'));
-    } else {
-      tr.querySelector('.sb-i-name')?.focus();
     }
     calcSmartBillTotals();
   }
@@ -4910,7 +4912,6 @@
     const totals = calcSmartBillTotals();
     saveLearnedItemsMap(learnedMap);
 
-    // Ensure party exists in userParties
     if (typeof userParties !== 'undefined' && Array.isArray(userParties)) {
       const exists = userParties.some(p => p && p.role === role && p.name.toLowerCase() === partyName.toLowerCase());
       if (!exists) {
@@ -4925,7 +4926,6 @@
       totals.chg > 0 ? `Chg: Rs.${totals.chg}` : ''
     ].filter(Boolean).join(' | ');
 
-    // Push Bill Transaction to userTransactions
     if (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) {
       userTransactions.push({
         id: Date.now(),
@@ -5018,8 +5018,7 @@
       b.paidNow > 0 ? `Paid Now: Rs. ${b.paidNow.toLocaleString()}` : '',
       `Prev Balance: Rs. ${b.prevBal.toLocaleString()}`,
       `*Total Net Balance: Rs. ${b.totalKhata.toLocaleString()}*`
-    ].filter(Boolean).join('
-');
+    ].filter(Boolean).join('\n');
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(lines).then(() => alert('WhatsApp Bill Summary Copy Ho Gayi! Ab WhatsApp mein Paste kar dein.'));
@@ -5038,7 +5037,6 @@
     const bizName = (typeof currentUser !== 'undefined' && currentUser && currentUser.bizName) ? currentUser.bizName : 'M. TEX REPLICA';
     const bizPhone = (typeof currentUser !== 'undefined' && currentUser && currentUser.phone) ? currentUser.phone : '';
 
-    // Dark Header
     doc.setFillColor(15, 23, 42);
     doc.rect(0, 0, 210, 34, 'F');
     doc.setTextColor(255, 255, 255);
@@ -5050,7 +5048,6 @@
     doc.setTextColor(203, 213, 225);
     doc.text((b.role === 'Supplier' ? 'PURCHASE VOUCHER / BILL' : 'TAX / SALE INVOICE') + (bizPhone ? '  |  Ph: ' + bizPhone : ''), 14, 22);
 
-    // Invoice Meta Box
     doc.setFillColor(248, 250, 252);
     doc.setDrawColor(203, 213, 225);
     doc.roundedRect(14, 40, 182, 22, 2, 2, 'FD');
@@ -5180,7 +5177,6 @@
     if (bills[idx]) generateSmartBillPDF(bills[idx]);
   }
 
-  // Quick Bill # Payment Receive Helpers
   function renderSbPayPartyDropdown() {
     const inp = document.getElementById('sbPayPartyInput');
     const menu = document.getElementById('sbPayPartyDropdown');
@@ -5277,6 +5273,10 @@
     updateSbPendingBillsDropdown();
     alert(`Rs. ${amt.toLocaleString()} (${cust}) Khate mein jama ho gaye!`);
   }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    setTimeout(initSmartBillTab, 300);
+  });
 </script>
 </body>
 </html>
