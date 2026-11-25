@@ -319,6 +319,7 @@
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabSuppliers" onclick="closeMobileMenu()"><i class="fa-solid fa-truck-field me-2"></i> Suppliers</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabLedger" onclick="closeMobileMenu()"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabDues" onclick="closeMobileMenu()"><i class="fa-solid fa-coins me-2"></i> Combined Dues</a>
+          <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabAllTransactions" onclick="closeMobileMenu(); if(typeof renderAllTransactionsTab==='function') renderAllTransactionsTab();"><i class="fa-solid fa-list-check me-2"></i> All Transactions</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabReports" onclick="closeMobileMenu()"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</a>
           <a class="mobile-nav-link text-danger mt-2 fw-bold" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
         </div>
@@ -342,6 +343,7 @@
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabSuppliers"><i class="fa-solid fa-truck-field me-2"></i> Suppliers</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabLedger"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabDues"><i class="fa-solid fa-coins me-2"></i> Combined Dues</button>
+        <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabAllTransactions" onclick="if(typeof renderAllTransactionsTab==='function') renderAllTransactionsTab();"><i class="fa-solid fa-list-check me-2"></i> All Transactions</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabReports"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</button>
         <button class="nav-link text-start text-danger mt-4" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</button>
       </div>
@@ -648,6 +650,120 @@
                   </table>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="tabAllTransactions">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <h4 class="fw-bold mb-0"><i class="fa-solid fa-list-check text-primary me-2"></i>All Transactions (Daily Log)</h4>
+              <small class="text-muted">Customer &amp; Supplier ki tamaam entries ek jagah — kisi bhi entry par click karke seedha Ledger kholein</small>
+            </div>
+            <div class="btn-group btn-group-sm" role="group">
+              <button type="button" class="btn btn-outline-primary fw-bold" onclick="setAllTxQuickDate('TODAY')">Today</button>
+              <button type="button" class="btn btn-outline-primary fw-bold" onclick="setAllTxQuickDate('YESTERDAY')">Yesterday</button>
+              <button type="button" class="btn btn-outline-primary fw-bold" onclick="setAllTxQuickDate('MONTH')">This Month</button>
+              <button type="button" class="btn btn-outline-secondary fw-bold" onclick="setAllTxQuickDate('ALL')">All</button>
+            </div>
+          </div>
+
+          <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body p-2 p-md-3">
+              <div class="row g-2 align-items-end">
+                <div class="col-6 col-md-2">
+                  <label class="form-label small fw-bold text-muted mb-1">Party Type</label>
+                  <select id="allTxRoleFilter" class="form-select form-select-sm fw-bold" onchange="renderAllTransactionsTab()">
+                    <option value="ALL">All (Cust + Supp)</option>
+                    <option value="Customer">Customer Only</option>
+                    <option value="Supplier">Supplier Only</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-3">
+                  <label class="form-label small fw-bold text-muted mb-1">Entry Type</label>
+                  <select id="allTxTypeFilter" class="form-select form-select-sm fw-bold" onchange="renderAllTransactionsTab()">
+                    <option value="ALL">All Types</option>
+                    <option value="SALE_CREDIT">Sale (Credit)</option>
+                    <option value="PAYMENT_REC">Payment Received (Cust)</option>
+                    <option value="SALE_RETURN">Sale Return</option>
+                    <option value="PURCHASE_CREDIT">Purchase (Credit)</option>
+                    <option value="PAYMENT_PAID">Payment Paid (Supp)</option>
+                    <option value="PURCHASE_RETURN">Purchase Return</option>
+                  </select>
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label small fw-bold text-muted mb-1">From Date</label>
+                  <input type="date" id="allTxFromDate" class="form-control form-control-sm" onchange="renderAllTransactionsTab()">
+                </div>
+                <div class="col-6 col-md-2">
+                  <label class="form-label small fw-bold text-muted mb-1">To Date</label>
+                  <input type="date" id="allTxToDate" class="form-control form-control-sm" onchange="renderAllTransactionsTab()">
+                </div>
+                <div class="col-12 col-md-3">
+                  <label class="form-label small fw-bold text-muted mb-1">Search Party / Bill / Note</label>
+                  <div class="input-group input-group-sm">
+                    <input type="text" id="allTxSearchInput" class="form-control" placeholder="Search name, bill..." oninput="renderAllTransactionsTab()">
+                    <button class="btn btn-outline-secondary" type="button" onclick="resetAllTxFilters()" title="Reset Filters"><i class="fa-solid fa-rotate-left"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body p-2 text-center">
+                  <div class="small text-muted fw-bold">Total Entries</div>
+                  <div class="fs-5 fw-bold text-dark" id="allTxStatCount">0</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="card border-0 shadow-sm bg-primary bg-opacity-10">
+                <div class="card-body p-2 text-center">
+                  <div class="small text-primary fw-bold">Sale / Purchase</div>
+                  <div class="fs-6 fw-bold text-primary" id="allTxStatBill">Rs. 0</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="card border-0 shadow-sm bg-success bg-opacity-10">
+                <div class="card-body p-2 text-center">
+                  <div class="small text-success fw-bold">Payments (In/Out)</div>
+                  <div class="fs-6 fw-bold text-success" id="allTxStatPay">Rs. 0</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="card border-0 shadow-sm bg-warning bg-opacity-10">
+                <div class="card-body p-2 text-center">
+                  <div class="small text-dark fw-bold">Sale / Purch Return</div>
+                  <div class="fs-6 fw-bold text-dark" id="allTxStatRet">Rs. 0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0 text-nowrap" style="font-size: 0.88rem;">
+                <thead class="table-dark">
+                  <tr>
+                    <th class="ps-3">Date</th>
+                    <th>Party Name</th>
+                    <th>Role</th>
+                    <th>Type</th>
+                    <th>Bill / Ref</th>
+                    <th class="text-end">Amount</th>
+                    <th>Method / Note</th>
+                    <th class="text-center pe-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="allTransactionsTableBody">
+                  <tr><td colspan="8" class="text-center text-muted py-4">Loading transactions...</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -2081,6 +2197,7 @@
   }
 
   function renderPartiesTables() {
+    if (typeof renderAllTransactionsTab === 'function') { try { renderAllTransactionsTab(); } catch(e) {} }
     let custBody = document.getElementById("customersTableBody");
     let suppBody = document.getElementById("suppliersTableBody");
 
@@ -3845,5 +3962,133 @@
   });
 </script>
 
+<script>
+  function getLocalYMD(d) {
+    const yr = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const dy = String(d.getDate()).padStart(2, '0');
+    return `${yr}-${mo}-${dy}`;
+  }
+
+  function setAllTxQuickDate(mode) {
+    const fEl = document.getElementById('allTxFromDate');
+    const tEl = document.getElementById('allTxToDate');
+    if (!fEl || !tEl) return;
+    const now = new Date();
+    if (mode === 'TODAY') {
+      const today = getLocalYMD(now);
+      fEl.value = today;
+      tEl.value = today;
+    } else if (mode === 'YESTERDAY') {
+      const y = new Date(now);
+      y.setDate(y.getDate() - 1);
+      const yStr = getLocalYMD(y);
+      fEl.value = yStr;
+      tEl.value = yStr;
+    } else if (mode === 'MONTH') {
+      const first = new Date(now.getFullYear(), now.getMonth(), 1);
+      fEl.value = getLocalYMD(first);
+      tEl.value = getLocalYMD(now);
+    } else {
+      fEl.value = '';
+      tEl.value = '';
+    }
+    renderAllTransactionsTab();
+  }
+
+  function resetAllTxFilters() {
+    if (document.getElementById('allTxRoleFilter')) document.getElementById('allTxRoleFilter').value = 'ALL';
+    if (document.getElementById('allTxTypeFilter')) document.getElementById('allTxTypeFilter').value = 'ALL';
+    if (document.getElementById('allTxFromDate')) document.getElementById('allTxFromDate').value = '';
+    if (document.getElementById('allTxToDate')) document.getElementById('allTxToDate').value = '';
+    if (document.getElementById('allTxSearchInput')) document.getElementById('allTxSearchInput').value = '';
+    renderAllTransactionsTab();
+  }
+
+  function getTxTypeBadgeHtml(t) {
+    const map = {
+      'SALE_CREDIT': '<span class="badge bg-primary">Sale (Credit)</span>',
+      'PAYMENT_REC': '<span class="badge bg-success">Payment Recv</span>',
+      'SALE_RETURN': '<span class="badge bg-warning text-dark">Sale Return</span>',
+      'PURCHASE_CREDIT': '<span class="badge bg-danger">Purchase</span>',
+      'PAYMENT_PAID': '<span class="badge bg-info text-dark">Payment Paid</span>',
+      'PURCHASE_RETURN': '<span class="badge bg-secondary">Purch Return</span>'
+    };
+    return map[t] || `<span class="badge bg-dark">${t || '-'}</span>`;
+  }
+
+  function renderAllTransactionsTab() {
+    try {
+      const tbody = document.getElementById('allTransactionsTableBody');
+      if (!tbody) return;
+
+      const roleF = document.getElementById('allTxRoleFilter')?.value || 'ALL';
+      const typeF = document.getElementById('allTxTypeFilter')?.value || 'ALL';
+      const fromD = document.getElementById('allTxFromDate')?.value || '';
+      const toD = document.getElementById('allTxToDate')?.value || '';
+      const q = (document.getElementById('allTxSearchInput')?.value || '').trim().toLowerCase();
+
+      const txArr = (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) ? userTransactions : [];
+      const list = txArr.filter(tx => {
+        if (!tx) return false;
+        if (roleF !== 'ALL' && tx.role !== roleF) return false;
+        if (typeF !== 'ALL' && tx.type !== typeF) return false;
+        if (fromD && (tx.date || '') < fromD) return false;
+        if (toD && (tx.date || '') > toD) return false;
+        if (q) {
+          const hay = `${tx.name || ''} ${tx.billNo || ''} ${tx.notes || ''} ${tx.method || ''}`.toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      }).sort((a, b) => {
+        const dCmp = String(b.date || '').localeCompare(String(a.date || ''));
+        if (dCmp !== 0) return dCmp;
+        return (Number(b.id) || 0) - (Number(a.id) || 0);
+      });
+
+      let billTotal = 0, payTotal = 0, retTotal = 0;
+      list.forEach(tx => {
+        const amt = Number(tx.amount) || 0;
+        if (tx.type === 'SALE_CREDIT' || tx.type === 'PURCHASE_CREDIT') billTotal += amt;
+        else if (tx.type === 'PAYMENT_REC' || tx.type === 'PAYMENT_PAID') payTotal += amt;
+        else if (tx.type === 'SALE_RETURN' || tx.type === 'PURCHASE_RETURN') retTotal += amt;
+      });
+
+      if (document.getElementById('allTxStatCount')) document.getElementById('allTxStatCount').innerText = list.length;
+      if (document.getElementById('allTxStatBill')) document.getElementById('allTxStatBill').innerText = 'Rs. ' + billTotal.toLocaleString();
+      if (document.getElementById('allTxStatPay')) document.getElementById('allTxStatPay').innerText = 'Rs. ' + payTotal.toLocaleString();
+      if (document.getElementById('allTxStatRet')) document.getElementById('allTxStatRet').innerText = 'Rs. ' + retTotal.toLocaleString();
+
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted py-4">Is filter mein koi entry nahi mili.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(tx => {
+        const safeName = String(tx.name || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+        const safeRole = tx.role === 'Supplier' ? 'Supplier' : 'Customer';
+        const roleBadge = safeRole === 'Supplier'
+          ? '<span class="badge bg-warning text-dark">Supplier</span>'
+          : '<span class="badge bg-light text-primary border border-primary">Customer</span>';
+        const amt = Number(tx.amount) || 0;
+        const noteText = [tx.method, tx.notes].filter(Boolean).join(' • ');
+        return `<tr>
+          <td class="ps-3 fw-semibold">${tx.date || '-'}</td>
+          <td class="fw-bold"><a href="javascript:void(0)" class="text-decoration-none" onclick="viewPartyLedger('${safeName}', '${safeRole}')">${tx.name || '-'}</a></td>
+          <td>${roleBadge}</td>
+          <td>${getTxTypeBadgeHtml(tx.type)}</td>
+          <td class="text-muted">${tx.billNo || '-'}</td>
+          <td class="text-end fw-bold">Rs. ${amt.toLocaleString()}</td>
+          <td class="text-muted small" style="max-width:200px; overflow:hidden; text-overflow:ellipsis;">${noteText || '-'}</td>
+          <td class="text-center pe-3">
+            <button class="btn btn-sm btn-outline-primary fw-bold py-0 px-2" onclick="viewPartyLedger('${safeName}', '${safeRole}')"><i class="fa-solid fa-book-open me-1"></i>Ledger</button>
+          </td>
+        </tr>`;
+      }).join('');
+    } catch (err) {
+      console.warn('AllTransactions render warning:', err);
+    }
+  }
+</script>
 </body>
 </html>
