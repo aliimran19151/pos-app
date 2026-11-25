@@ -64,6 +64,70 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Smart POS">
   <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3144/3144456.png">
+<style>
+  /* Cross-Device (PC, iPhone iOS, Android) Party Auto-Suggest & Smart Bill Styles */
+  .sb-suggest-wrap { position: relative; }
+  .sb-suggest-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 2050;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.16);
+    max-height: 220px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: none;
+    margin-top: 2px;
+  }
+  .sb-suggest-item {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    min-height: 42px;
+    user-select: none;
+  }
+  .sb-suggest-item:last-child { border-bottom: none; }
+  .sb-suggest-item:hover, .sb-suggest-item:active { background: #eff6ff; }
+  /* Prevent iOS Safari auto-zoom on input focus */
+  @media screen and (max-width: 768px) {
+    #entryName, #sbPartyInput, #sbPayPartyInput, #sbItemsBody input, #sbDiscount, #sbCharges, #sbPaidNow, #sbPayAmount {
+      font-size: 16px !important;
+    }
+  }
+  .sb-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #1e293b;
+    padding: 6px 11px;
+    border-radius: 20px;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 34px;
+    transition: all 0.15s;
+  }
+  .sb-chip:hover, .sb-chip:active {
+    background: #dbeafe;
+    border-color: #3b82f6;
+    color: #1d4ed8;
+  }
+  .sb-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+</style>
 </head>
 <body>
 
@@ -319,6 +383,7 @@
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabSuppliers" onclick="closeMobileMenu()"><i class="fa-solid fa-truck-field me-2"></i> Suppliers</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabLedger" onclick="closeMobileMenu()"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabDues" onclick="closeMobileMenu()"><i class="fa-solid fa-coins me-2"></i> Combined Dues</a>
+          <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabSmartBill" onclick="closeMobileMenu(); if(typeof initSmartBillTab==='function') initSmartBillTab();"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Smart Bill &amp; Invoice</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabAllTransactions" onclick="closeMobileMenu(); if(typeof renderAllTransactionsTab==='function') renderAllTransactionsTab();"><i class="fa-solid fa-list-check me-2"></i> All Transactions</a>
           <a class="mobile-nav-link" data-bs-toggle="pill" data-bs-target="#tabReports" onclick="closeMobileMenu()"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</a>
           <a class="mobile-nav-link text-danger mt-2 fw-bold" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
@@ -343,6 +408,7 @@
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabSuppliers"><i class="fa-solid fa-truck-field me-2"></i> Suppliers</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabLedger"><i class="fa-solid fa-book-bookmark me-2"></i> Ledger Search</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabDues"><i class="fa-solid fa-coins me-2"></i> Combined Dues</button>
+        <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabSmartBill" onclick="if(typeof initSmartBillTab==='function') initSmartBillTab();"><i class="fa-solid fa-file-invoice-dollar me-2"></i> Smart Bill &amp; Invoice</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabAllTransactions" onclick="if(typeof renderAllTransactionsTab==='function') renderAllTransactionsTab();"><i class="fa-solid fa-list-check me-2"></i> All Transactions</button>
         <button class="nav-link text-start" data-bs-toggle="pill" data-bs-target="#tabReports"><i class="fa-solid fa-file-invoice me-2"></i> Reports & Export</button>
         <button class="nav-link text-start text-danger mt-4" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</button>
@@ -654,6 +720,242 @@
           </div>
         </div>
 
+        <div class="tab-pane fade" id="tabSmartBill">
+          <!-- Top Banner -->
+          <div class="card border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: #fff;">
+            <div class="card-body p-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+              <div>
+                <h5 class="fw-bold mb-0"><i class="fa-solid fa-file-invoice-dollar text-warning me-2"></i>Smart Bill &amp; Invoice Maker</h5>
+                <small class="text-light opacity-75">Auto-Learn Items • Live Khata Sync • Branded A4 PDF • WhatsApp Ready</small>
+              </div>
+              <div class="d-flex align-items-center gap-2 flex-wrap">
+                <div class="form-check form-switch bg-white bg-opacity-10 px-3 py-1 rounded-pill mb-0">
+                  <input class="form-check-input" type="checkbox" id="sbInvToggle" onchange="toggleSmartBillInv()">
+                  <label class="form-check-label small fw-bold text-white" for="sbInvToggle">Inventory Mode</label>
+                </div>
+                <span id="sbInvBadge" class="badge bg-success">Auto-Learn ON</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <!-- Left / Main Bill Builder -->
+            <div class="col-12 col-lg-8">
+              <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom py-2 px-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <input type="radio" class="btn-check" name="sbRoleRadio" id="sbRoleCust" value="Customer" checked onchange="onSmartBillRoleChange()">
+                    <label class="btn btn-outline-primary fw-bold" for="sbRoleCust"><i class="fa-solid fa-user me-1"></i>Customer Sale Bill</label>
+                    <input type="radio" class="btn-check" name="sbRoleRadio" id="sbRoleSupp" value="Supplier" onchange="onSmartBillRoleChange()">
+                    <label class="btn btn-outline-warning text-dark fw-bold" for="sbRoleSupp"><i class="fa-solid fa-truck me-1"></i>Supplier Purchase</label>
+                  </div>
+                  <span id="sbLivePartyBalBadge" class="badge bg-light text-dark border">Prev Due: Rs. 0</span>
+                </div>
+
+                <div class="card-body p-2 p-md-3">
+                  <div class="row g-2 mb-3">
+                    <div class="col-12 col-md-5 sb-suggest-wrap">
+                      <label class="form-label small fw-bold text-muted mb-1" id="sbPartyLabel">Customer Name *</label>
+                      <input type="text" id="sbPartyInput" class="form-control form-control-sm fw-bold" placeholder="Search or type name..." autocomplete="off"
+                        onfocus="renderSbPartyDropdown()"
+                        oninput="onSmartBillPartyInput(); renderSbPartyDropdown();"
+                        onblur="setTimeout(hideSbPartyDropdown, 180)">
+                      <div id="sbPartyDropdown" class="sb-suggest-menu"></div>
+                    </div>
+                    <div class="col-6 col-md-4">
+                      <label class="form-label small fw-bold text-muted mb-1">Bill / Invoice #</label>
+                      <input type="text" id="sbBillNo" class="form-control form-control-sm fw-bold text-primary" value="INV-101">
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label small fw-bold text-muted mb-1">Date</label>
+                      <input type="date" id="sbDate" class="form-control form-control-sm">
+                    </div>
+                  </div>
+
+                  <!-- Items Table -->
+                  <div class="sb-table-wrap border rounded mb-2">
+                    <table class="table table-sm table-bordered align-middle mb-0" style="min-width: 520px;">
+                      <thead class="table-light">
+                        <tr class="small text-muted">
+                          <th style="width: 34px;" class="text-center">#</th>
+                          <th>Item / Description</th>
+                          <th style="width: 75px;" class="text-center">Unit</th>
+                          <th style="width: 75px;" class="text-center">Qty</th>
+                          <th style="width: 95px;" class="text-end">Rate</th>
+                          <th style="width: 100px;" class="text-end">Total</th>
+                          <th style="width: 36px;"></th>
+                        </tr>
+                      </thead>
+                      <tbody id="sbItemsBody"></tbody>
+                    </table>
+                  </div>
+                  <datalist id="sbItemsDatalist"></datalist>
+
+                  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="addSmartBillRow()">
+                      <i class="fa-solid fa-plus me-1"></i>Add Line (or press Enter)
+                    </button>
+                    <div class="small text-muted">Sub-Total: <strong class="text-dark" id="sbSubTotal">Rs. 0</strong></div>
+                  </div>
+
+                  <!-- Discount, Charges, Paid Now -->
+                  <div class="row g-2 p-2 rounded bg-light border mb-3">
+                    <div class="col-6 col-md-3">
+                      <label class="form-label small fw-bold text-muted mb-1">Discount (Rs.)</label>
+                      <input type="number" inputmode="decimal" id="sbDiscount" class="form-control form-control-sm" value="0" min="0" oninput="calcSmartBillTotals()">
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label small fw-bold text-muted mb-1">Delivery / Charges</label>
+                      <input type="number" inputmode="decimal" id="sbCharges" class="form-control form-control-sm" value="0" min="0" oninput="calcSmartBillTotals()">
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label small fw-bold text-success mb-1" id="sbPaidNowLabel">Paid Now (Cash/Bank)</label>
+                      <input type="number" inputmode="decimal" id="sbPaidNow" class="form-control form-control-sm border-success" value="0" min="0" oninput="calcSmartBillTotals()">
+                    </div>
+                    <div class="col-6 col-md-3">
+                      <label class="form-label small fw-bold text-muted mb-1">Payment Method</label>
+                      <select id="sbPayMethod" class="form-select form-select-sm">
+                        <option value="Cash">Cash</option>
+                        <option value="Online / Bank">Online / Bank</option>
+                        <option value="JazzCash / EasyPaisa">JazzCash / EasyPaisa</option>
+                        <option value="Cheque">Cheque</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Totals Summary Bar -->
+                  <div class="row g-2 text-center mb-3">
+                    <div class="col-4">
+                      <div class="p-2 rounded border bg-white">
+                        <div class="small text-muted fw-bold">Net Bill</div>
+                        <div class="fs-6 fw-bold text-primary" id="sbGrandTotal">Rs. 0</div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="p-2 rounded border bg-white">
+                        <div class="small text-muted fw-bold">Bill Due</div>
+                        <div class="fs-6 fw-bold text-danger" id="sbBillRemaining">Rs. 0</div>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <div class="p-2 rounded border bg-dark text-white">
+                        <div class="small opacity-75 fw-bold">Total Khata Bal</div>
+                        <div class="fs-6 fw-bold text-warning" id="sbProjectedTotalBal">Rs. 0</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons -->
+                  <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <button type="button" class="btn btn-outline-secondary btn-sm fw-bold" onclick="resetSmartBillForm()">
+                      <i class="fa-solid fa-rotate-left me-1"></i>Clear
+                    </button>
+                    <button type="button" class="btn btn-success fw-bold px-3" onclick="saveSmartBill(false)">
+                      <i class="fa-solid fa-check me-1"></i>Save to Khata
+                    </button>
+                    <button type="button" class="btn btn-primary fw-bold px-3" onclick="saveSmartBill(true)">
+                      <i class="fa-solid fa-file-pdf me-1"></i>Save &amp; Download PDF
+                    </button>
+                  </div>
+
+                  <!-- Saved Bill Preview / WhatsApp Share Strip -->
+                  <div id="sbLastSavedBox" class="alert alert-success mt-3 mb-0 d-none">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                      <div id="sbLastSavedText" class="small fw-bold"></div>
+                      <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-dark fw-bold" onclick="downloadLastSmartBillPDF()">
+                          <i class="fa-solid fa-download me-1"></i>PDF
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success fw-bold" onclick="copyLastSmartBillWhatsApp()">
+                          <i class="fa-brands fa-whatsapp me-1"></i>Copy WhatsApp
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Auto-Learn Items & Quick Bill # Payment -->
+            <div class="col-12 col-lg-4">
+              <!-- Auto-Learned Items Memory -->
+              <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center">
+                  <span class="fw-bold small text-dark"><i class="fa-solid fa-bolt text-warning me-1"></i>Auto-Learned Items (Tap to Add)</span>
+                  <span class="badge bg-light text-muted border" id="sbLearnedCount">0</span>
+                </div>
+                <div class="card-body p-2 p-md-3">
+                  <div id="sbChipsBox" class="d-flex flex-wrap gap-1"></div>
+                </div>
+              </div>
+
+              <!-- Quick Bill-Wise Payment Receive -->
+              <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-success bg-opacity-10 py-2 px-3">
+                  <span class="fw-bold small text-success"><i class="fa-solid fa-hand-holding-dollar me-1"></i>Quick Payment (Pending Bill #)</span>
+                </div>
+                <div class="card-body p-2 p-md-3">
+                  <div class="mb-2 sb-suggest-wrap">
+                    <label class="form-label small fw-bold text-muted mb-1">Party Name</label>
+                    <input type="text" id="sbPayPartyInput" class="form-control form-control-sm" placeholder="Select customer..." autocomplete="off"
+                      onfocus="renderSbPayPartyDropdown()"
+                      oninput="updateSbPendingBillsDropdown(); renderSbPayPartyDropdown();"
+                      onblur="setTimeout(hideSbPayPartyDropdown, 180)">
+                    <div id="sbPayPartyDropdown" class="sb-suggest-menu"></div>
+                  </div>
+                  <div class="mb-2">
+                    <label class="form-label small fw-bold text-muted mb-1">Pending Bill #</label>
+                    <select id="sbPendingBillSelect" class="form-select form-select-sm" onchange="onSbPendingBillSelect()">
+                      <option value="">General / On-Account</option>
+                    </select>
+                  </div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6">
+                      <label class="form-label small fw-bold text-muted mb-1">Amount (Rs.)</label>
+                      <input type="number" inputmode="decimal" id="sbPayAmount" class="form-control form-control-sm fw-bold" placeholder="0">
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label small fw-bold text-muted mb-1">Method</label>
+                      <select id="sbPayQuickMethod" class="form-select form-select-sm">
+                        <option value="Cash">Cash</option>
+                        <option value="Online / Bank">Online / Bank</option>
+                        <option value="JazzCash / EasyPaisa">JazzCash / EasyPaisa</option>
+                      </select>
+                    </div>
+                  </div>
+                  <button type="button" class="btn btn-success btn-sm w-100 fw-bold" onclick="saveSbQuickPayment()">
+                    <i class="fa-solid fa-check-circle me-1"></i>Record Payment to Khata
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Smart Bills History -->
+          <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-2 px-3 d-flex justify-content-between align-items-center">
+              <span class="fw-bold small"><i class="fa-solid fa-clock-rotate-left text-primary me-1"></i>Recent Smart Bills (Reprint PDF / WhatsApp)</span>
+            </div>
+            <div class="sb-table-wrap">
+              <table class="table table-sm table-hover align-middle mb-0 text-nowrap" style="font-size: 0.85rem;">
+                <thead class="table-light">
+                  <tr>
+                    <th class="ps-3">Date</th>
+                    <th>Bill #</th>
+                    <th>Party</th>
+                    <th>Items</th>
+                    <th class="text-end">Total</th>
+                    <th class="text-center pe-3">Invoice</th>
+                  </tr>
+                </thead>
+                <tbody id="sbHistoryTableBody">
+                  <tr><td colspan="6" class="text-center text-muted py-3">Koi Smart Bill abhi tak save nahi hua.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div class="tab-pane fade" id="tabAllTransactions">
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
             <div>
@@ -886,10 +1188,13 @@
                 <option value="Supplier">Supplier</option>
               </select>
             </div>
-            <div class="col-6 col-md-4">
+            <div class="col-6 col-md-4 sb-suggest-wrap">
               <label class="form-label small fw-bold">Name</label>
-              <input type="text" id="entryName" class="form-control form-control-sm" placeholder="Name" list="partySuggestions" required autocomplete="off" oninput="checkPartyLiveBalance()">
-              <datalist id="partySuggestions"></datalist>
+              <input type="text" id="entryName" class="form-control form-control-sm" placeholder="Search or type party..." required autocomplete="off"
+                onfocus="renderEntryPartyDropdown()"
+                oninput="checkPartyLiveBalance(); renderEntryPartyDropdown();"
+                onblur="setTimeout(hideEntryPartyDropdown, 180)">
+              <div id="entryPartyDropdown" class="sb-suggest-menu"></div>
               <small id="liveBalanceWarning" class="fw-bold d-block mt-1" style="font-size: 11px;"></small>
             </div>
             <div class="col-6 col-md-4">
@@ -4088,6 +4393,776 @@
     } catch (err) {
       console.warn('AllTransactions render warning:', err);
     }
+  }
+</script>
+<script>
+  // ============================================================
+  // 1. CROSS-DEVICE LIVE PARTY AUTO-SUGGEST (NEW ENTRY MODAL)
+  // ============================================================
+  function getPartyLiveBalance(name, role) {
+    let total = 0, paid = 0;
+    const target = String(name || '').trim().toLowerCase();
+    const txList = (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) ? userTransactions : [];
+    txList.forEach(t => {
+      if (!t || t.role !== role) return;
+      if (String(t.name || '').trim().toLowerCase() !== target) return;
+      const amt = Number(t.amount) || 0;
+      if (role === 'Customer') {
+        if (t.type === 'SALE_CREDIT') total += amt;
+        else if (t.type === 'PAYMENT_REC' || t.type === 'SALE_RETURN') paid += amt;
+      } else {
+        if (t.type === 'PURCHASE_CREDIT') total += amt;
+        else if (t.type === 'PAYMENT_PAID' || t.type === 'PURCHASE_RETURN') paid += amt;
+      }
+    });
+    return total - paid;
+  }
+
+  function getAllPartiesByRole(role) {
+    const map = new Map();
+    const pArr = (typeof userParties !== 'undefined' && Array.isArray(userParties)) ? userParties : [];
+    const tArr = (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) ? userTransactions : [];
+    pArr.filter(p => p && p.role === role && p.name).forEach(p => {
+      map.set(p.name.trim().toLowerCase(), { name: p.name.trim(), phone: p.phone || '' });
+    });
+    tArr.filter(t => t && t.role === role && t.name).forEach(t => {
+      const k = t.name.trim().toLowerCase();
+      if (!map.has(k)) map.set(k, { name: t.name.trim(), phone: '' });
+    });
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  function renderEntryPartyDropdown() {
+    const inp = document.getElementById('entryName');
+    const menu = document.getElementById('entryPartyDropdown');
+    const roleEl = document.getElementById('entryRole');
+    if (!inp || !menu || !roleEl) return;
+
+    const role = roleEl.value || 'Customer';
+    const q = inp.value.trim().toLowerCase();
+    const list = getAllPartiesByRole(role).filter(p => !q || p.name.toLowerCase().includes(q) || (p.phone && p.phone.includes(q)));
+
+    if (!list.length) {
+      menu.style.display = 'none';
+      return;
+    }
+
+    menu.innerHTML = list.slice(0, 25).map(p => {
+      const bal = getPartyLiveBalance(p.name, role);
+      const balColor = bal > 0 ? 'text-danger' : 'text-success';
+      const safeAttr = p.name.replace(/"/g, '&quot;');
+      return `<div class="sb-suggest-item" onpointerdown="selectEntryParty(this.getAttribute('data-name'))" data-name="${safeAttr}">
+        <div>
+          <div class="fw-bold text-dark">${p.name}</div>
+          ${p.phone ? `<small class="text-muted">${p.phone}</small>` : ''}
+        </div>
+        <span class="small fw-bold ${balColor}">Rs. ${bal.toLocaleString()}</span>
+      </div>`;
+    }).join('');
+    menu.style.display = 'block';
+  }
+
+  function selectEntryParty(name) {
+    const inp = document.getElementById('entryName');
+    if (inp) {
+      inp.value = name;
+      if (typeof checkPartyLiveBalance === 'function') checkPartyLiveBalance();
+    }
+    hideEntryPartyDropdown();
+  }
+
+  function hideEntryPartyDropdown() {
+    const menu = document.getElementById('entryPartyDropdown');
+    if (menu) menu.style.display = 'none';
+  }
+
+  // ============================================================
+  // 2. SMART BILL & INVOICE MAKER (PRO CROSS-DEVICE SYSTEM)
+  // ============================================================
+  let sbLastSavedBill = null;
+
+  function getSbStorageKey(suffix) {
+    const u = (typeof currentUser !== 'undefined' && currentUser && currentUser.phone) ? currentUser.phone : 'default';
+    return `mtex_sb_${suffix}_${u}`;
+  }
+
+  function getLearnedItemsMap() {
+    try {
+      const raw = localStorage.getItem(getSbStorageKey('items'));
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    return {
+      "Cotton Suit 3pc": { rate: 2500, unit: "Suit", stock: 40 },
+      "Wash & Wear": { rate: 1800, unit: "Suit", stock: 25 },
+      "Lawn Print": { rate: 2200, unit: "Suit", stock: 30 }
+    };
+  }
+
+  function saveLearnedItemsMap(map) {
+    try { localStorage.setItem(getSbStorageKey('items'), JSON.stringify(map)); } catch (e) {}
+  }
+
+  function getSavedSmartBills() {
+    try {
+      const raw = localStorage.getItem(getSbStorageKey('bills'));
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+
+  function saveSavedSmartBills(arr) {
+    try { localStorage.setItem(getSbStorageKey('bills'), JSON.stringify(arr.slice(0, 100))); } catch (e) {}
+  }
+
+  function getNextSmartBillNo() {
+    const bills = getSavedSmartBills();
+    let maxNum = 100;
+    bills.forEach(b => {
+      const m = String(b.billNo || '').match(/(\d+)/);
+      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    });
+    const txArr = (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) ? userTransactions : [];
+    txArr.forEach(t => {
+      const m = String(t.billNo || '').match(/INV-(\d+)/i);
+      if (m) maxNum = Math.max(maxNum, parseInt(m[1], 10));
+    });
+    return 'INV-' + (maxNum + 1);
+  }
+
+  function initSmartBillTab() {
+    const dtEl = document.getElementById('sbDate');
+    if (dtEl && !dtEl.value) {
+      const now = new Date();
+      dtEl.value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    }
+    const billEl = document.getElementById('sbBillNo');
+    if (billEl && (!billEl.value || billEl.value === 'INV-101')) {
+      billEl.value = getNextSmartBillNo();
+    }
+    const tbody = document.getElementById('sbItemsBody');
+    if (tbody && tbody.children.length === 0) {
+      addSmartBillRow();
+    }
+    renderSmartBillChips();
+    renderSmartBillHistory();
+    onSmartBillPartyInput();
+  }
+
+  function toggleSmartBillInv() {
+    const on = document.getElementById('sbInvToggle')?.checked;
+    const badge = document.getElementById('sbInvBadge');
+    if (badge) {
+      badge.className = on ? 'badge bg-warning text-dark' : 'badge bg-success';
+      badge.innerText = on ? 'Inventory ON' : 'Auto-Learn ON';
+    }
+    renderSmartBillChips();
+  }
+
+  function getSmartBillRole() {
+    return document.getElementById('sbRoleSupp')?.checked ? 'Supplier' : 'Customer';
+  }
+
+  function onSmartBillRoleChange() {
+    const role = getSmartBillRole();
+    const lbl = document.getElementById('sbPartyLabel');
+    const payLbl = document.getElementById('sbPaidNowLabel');
+    if (lbl) lbl.innerText = role === 'Supplier' ? 'Supplier Name *' : 'Customer Name *';
+    if (payLbl) payLbl.innerText = role === 'Supplier' ? 'Paid to Supplier' : 'Paid Now (Received)';
+    onSmartBillPartyInput();
+  }
+
+  function renderSbPartyDropdown() {
+    const inp = document.getElementById('sbPartyInput');
+    const menu = document.getElementById('sbPartyDropdown');
+    if (!inp || !menu) return;
+    const role = getSmartBillRole();
+    const q = inp.value.trim().toLowerCase();
+    const list = getAllPartiesByRole(role).filter(p => !q || p.name.toLowerCase().includes(q));
+    if (!list.length) { menu.style.display = 'none'; return; }
+    menu.innerHTML = list.slice(0, 25).map(p => {
+      const bal = getPartyLiveBalance(p.name, role);
+      const safeAttr = p.name.replace(/"/g, '&quot;');
+      return `<div class="sb-suggest-item" onpointerdown="selectSbParty(this.getAttribute('data-name'))" data-name="${safeAttr}">
+        <span class="fw-bold text-dark">${p.name}</span>
+        <span class="small fw-bold ${bal > 0 ? 'text-danger' : 'text-success'}">Rs. ${bal.toLocaleString()}</span>
+      </div>`;
+    }).join('');
+    menu.style.display = 'block';
+  }
+
+  function selectSbParty(name) {
+    const inp = document.getElementById('sbPartyInput');
+    if (inp) inp.value = name;
+    hideSbPartyDropdown();
+    onSmartBillPartyInput();
+  }
+
+  function hideSbPartyDropdown() {
+    const menu = document.getElementById('sbPartyDropdown');
+    if (menu) menu.style.display = 'none';
+  }
+
+  function onSmartBillPartyInput() {
+    const name = (document.getElementById('sbPartyInput')?.value || '').trim();
+    const role = getSmartBillRole();
+    const prevBal = name ? getPartyLiveBalance(name, role) : 0;
+    const badge = document.getElementById('sbLivePartyBalBadge');
+    if (badge) {
+      badge.innerText = `Prev Due: Rs. ${prevBal.toLocaleString()}`;
+      badge.className = prevBal > 0 ? 'badge bg-danger bg-opacity-10 text-danger border border-danger' : 'badge bg-light text-dark border';
+    }
+    calcSmartBillTotals();
+  }
+
+  function renderSmartBillChips() {
+    const map = getLearnedItemsMap();
+    const dl = document.getElementById('sbItemsDatalist');
+    const box = document.getElementById('sbChipsBox');
+    const cnt = document.getElementById('sbLearnedCount');
+    const invOn = document.getElementById('sbInvToggle')?.checked;
+    if (!box) return;
+
+    const keys = Object.keys(map);
+    if (cnt) cnt.innerText = keys.length;
+    if (dl) dl.innerHTML = keys.map(k => `<option value="${k.replace(/"/g, '&quot;')}">`).join('');
+
+    if (!keys.length) {
+      box.innerHTML = '<small class="text-muted">Pehla bill save karte hi items yahan yaad ho jayenge.</small>';
+      return;
+    }
+
+    box.innerHTML = keys.map(k => {
+      const info = map[k];
+      const safeAttr = k.replace(/"/g, '&quot;');
+      const stkTxt = invOn ? ` <span class="badge bg-warning text-dark">Stk:${info.stock || 0}</span>` : '';
+      return `<button type="button" class="sb-chip" data-item="${safeAttr}" onclick="insertItemFromChip(this.getAttribute('data-item'))">
+        <span>${k}</span>
+        <small class="text-primary">Rs.${Number(info.rate || 0).toLocaleString()}</small>${stkTxt}
+      </button>`;
+    }).join('');
+  }
+
+  function insertItemFromChip(itemName) {
+    const rows = document.querySelectorAll('#sbItemsBody tr');
+    for (let r of rows) {
+      const inp = r.querySelector('.sb-i-name');
+      if (inp && !inp.value.trim()) {
+        inp.value = itemName;
+        onSmartBillItemInput(inp);
+        return;
+      }
+    }
+    addSmartBillRow(itemName);
+  }
+
+  function addSmartBillRow(prefillName = '') {
+    const tbody = document.getElementById('sbItemsBody');
+    if (!tbody) return;
+    const idx = tbody.children.length + 1;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="text-center fw-bold text-muted sb-r-num">${idx}</td>
+      <td><input type="text" class="form-control form-control-sm sb-i-name" list="sbItemsDatalist" placeholder="Item name..." value="${prefillName.replace(/"/g, '&quot;')}" oninput="onSmartBillItemInput(this)"></td>
+      <td>
+        <select class="form-select form-select-sm sb-i-unit">
+          <option value="Suit">Suit</option>
+          <option value="Gaz">Gaz</option>
+          <option value="Pcs">Pcs</option>
+          <option value="Box">Box</option>
+          <option value="Kg">Kg</option>
+        </select>
+      </td>
+      <td><input type="number" inputmode="decimal" class="form-control form-control-sm text-center sb-i-qty" value="1" min="0" oninput="calcSmartBillTotals()" onkeydown="handleSbRowKey(event, this)"></td>
+      <td><input type="number" inputmode="decimal" class="form-control form-control-sm text-end sb-i-rate" value="0" min="0" oninput="calcSmartBillTotals()" onkeydown="handleSbRowKey(event, this)"></td>
+      <td class="text-end fw-bold sb-i-amt">0</td>
+      <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 fw-bold" onclick="removeSmartBillRow(this)">×</button></td>
+    `;
+    tbody.appendChild(tr);
+    if (prefillName) {
+      onSmartBillItemInput(tr.querySelector('.sb-i-name'));
+    } else {
+      tr.querySelector('.sb-i-name')?.focus();
+    }
+    calcSmartBillTotals();
+  }
+
+  function handleSbRowKey(e, el) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const tr = el.closest('tr');
+      if (tr && !tr.nextElementSibling) {
+        addSmartBillRow();
+      } else if (tr && tr.nextElementSibling) {
+        tr.nextElementSibling.querySelector('.sb-i-name')?.focus();
+      }
+    }
+  }
+
+  function onSmartBillItemInput(inp) {
+    const val = inp.value.trim();
+    const tr = inp.closest('tr');
+    const map = getLearnedItemsMap();
+    if (map[val] && tr) {
+      tr.querySelector('.sb-i-rate').value = map[val].rate || 0;
+      if (map[val].unit) tr.querySelector('.sb-i-unit').value = map[val].unit;
+      calcSmartBillTotals();
+    }
+  }
+
+  function removeSmartBillRow(btn) {
+    const tbody = document.getElementById('sbItemsBody');
+    if (!tbody || tbody.children.length <= 1) return;
+    btn.closest('tr').remove();
+    Array.from(tbody.children).forEach((row, i) => {
+      const numCell = row.querySelector('.sb-r-num');
+      if (numCell) numCell.innerText = i + 1;
+    });
+    calcSmartBillTotals();
+  }
+
+  function calcSmartBillTotals() {
+    const rows = document.querySelectorAll('#sbItemsBody tr');
+    let subTotal = 0;
+    rows.forEach(tr => {
+      const q = Number(tr.querySelector('.sb-i-qty')?.value || 0);
+      const r = Number(tr.querySelector('.sb-i-rate')?.value || 0);
+      const amt = q * r;
+      const cell = tr.querySelector('.sb-i-amt');
+      if (cell) cell.innerText = amt.toLocaleString();
+      subTotal += amt;
+    });
+
+    const disc = Number(document.getElementById('sbDiscount')?.value || 0);
+    const chg = Number(document.getElementById('sbCharges')?.value || 0);
+    const paid = Number(document.getElementById('sbPaidNow')?.value || 0);
+    const netBill = Math.max(0, subTotal - disc + chg);
+    const billRem = Math.max(0, netBill - paid);
+
+    const name = (document.getElementById('sbPartyInput')?.value || '').trim();
+    const role = getSmartBillRole();
+    const prevBal = name ? getPartyLiveBalance(name, role) : 0;
+    const totalKhata = prevBal + netBill - paid;
+
+    if (document.getElementById('sbSubTotal')) document.getElementById('sbSubTotal').innerText = 'Rs. ' + subTotal.toLocaleString();
+    if (document.getElementById('sbGrandTotal')) document.getElementById('sbGrandTotal').innerText = 'Rs. ' + netBill.toLocaleString();
+    if (document.getElementById('sbBillRemaining')) document.getElementById('sbBillRemaining').innerText = 'Rs. ' + billRem.toLocaleString();
+    if (document.getElementById('sbProjectedTotalBal')) document.getElementById('sbProjectedTotalBal').innerText = 'Rs. ' + totalKhata.toLocaleString();
+
+    return { subTotal, disc, chg, netBill, paid, billRem, prevBal, totalKhata };
+  }
+
+  function resetSmartBillForm() {
+    document.getElementById('sbPartyInput').value = '';
+    document.getElementById('sbBillNo').value = getNextSmartBillNo();
+    document.getElementById('sbDiscount').value = '0';
+    document.getElementById('sbCharges').value = '0';
+    document.getElementById('sbPaidNow').value = '0';
+    document.getElementById('sbItemsBody').innerHTML = '';
+    addSmartBillRow();
+    onSmartBillPartyInput();
+  }
+
+  async function saveSmartBill(downloadPdfAfter) {
+    const role = getSmartBillRole();
+    const partyName = (document.getElementById('sbPartyInput')?.value || '').trim();
+    const billNo = (document.getElementById('sbBillNo')?.value || '').trim() || getNextSmartBillNo();
+    const dateVal = document.getElementById('sbDate')?.value || new Date().toISOString().split('T')[0];
+    const method = document.getElementById('sbPayMethod')?.value || 'Cash';
+
+    if (!partyName) {
+      alert('Pehle Customer ya Supplier ka naam likhein!');
+      document.getElementById('sbPartyInput')?.focus();
+      return;
+    }
+
+    const items = [];
+    const learnedMap = getLearnedItemsMap();
+    document.querySelectorAll('#sbItemsBody tr').forEach(tr => {
+      const nm = (tr.querySelector('.sb-i-name')?.value || '').trim();
+      const unit = tr.querySelector('.sb-i-unit')?.value || 'Suit';
+      const qty = Number(tr.querySelector('.sb-i-qty')?.value || 0);
+      const rate = Number(tr.querySelector('.sb-i-rate')?.value || 0);
+      if (nm && qty > 0) {
+        items.push({ name: nm, unit, qty, rate, amount: qty * rate });
+        const oldStk = (learnedMap[nm] && typeof learnedMap[nm].stock === 'number') ? learnedMap[nm].stock : 0;
+        const newStk = role === 'Customer' ? Math.max(0, oldStk - qty) : (oldStk + qty);
+        learnedMap[nm] = { rate, unit, stock: newStk };
+      }
+    });
+
+    if (!items.length) {
+      alert('Kam az kam 1 item aur quantity darj karein!');
+      return;
+    }
+
+    const totals = calcSmartBillTotals();
+    saveLearnedItemsMap(learnedMap);
+
+    // Ensure party exists in userParties
+    if (typeof userParties !== 'undefined' && Array.isArray(userParties)) {
+      const exists = userParties.some(p => p && p.role === role && p.name.toLowerCase() === partyName.toLowerCase());
+      if (!exists) {
+        userParties.push({ name: partyName, role, phone: '' });
+      }
+    }
+
+    const itemsSummary = items.map(x => `${x.name} (${x.qty} ${x.unit} x ${x.rate})`).join(', ');
+    const extraNote = [
+      itemsSummary,
+      totals.disc > 0 ? `Disc: Rs.${totals.disc}` : '',
+      totals.chg > 0 ? `Chg: Rs.${totals.chg}` : ''
+    ].filter(Boolean).join(' | ');
+
+    // Push Bill Transaction to userTransactions
+    if (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) {
+      userTransactions.push({
+        id: Date.now(),
+        role,
+        name: partyName,
+        billNo,
+        type: role === 'Customer' ? 'SALE_CREDIT' : 'PURCHASE_CREDIT',
+        amount: totals.netBill,
+        method: 'Bill',
+        date: dateVal,
+        notes: extraNote,
+        img: ''
+      });
+
+      if (totals.paid > 0) {
+        userTransactions.push({
+          id: Date.now() + 2,
+          role,
+          name: partyName,
+          billNo,
+          type: role === 'Customer' ? 'PAYMENT_REC' : 'PAYMENT_PAID',
+          amount: totals.paid,
+          method,
+          date: dateVal,
+          notes: `Bill ${billNo} Payment`,
+          img: ''
+        });
+      }
+    }
+
+    const billRecord = {
+      id: Date.now(),
+      role,
+      partyName,
+      billNo,
+      date: dateVal,
+      items,
+      subTotal: totals.subTotal,
+      discount: totals.disc,
+      charges: totals.chg,
+      netBill: totals.netBill,
+      paidNow: totals.paid,
+      prevBal: totals.prevBal,
+      totalKhata: totals.totalKhata,
+      method
+    };
+
+    const allBills = getSavedSmartBills();
+    allBills.unshift(billRecord);
+    saveSavedSmartBills(allBills);
+    sbLastSavedBill = billRecord;
+
+    if (typeof saveToServer === 'function') await saveToServer();
+    if (typeof renderPartiesTables === 'function') renderPartiesTables();
+
+    const savedBox = document.getElementById('sbLastSavedBox');
+    const savedTxt = document.getElementById('sbLastSavedText');
+    if (savedBox && savedTxt) {
+      savedBox.classList.remove('d-none');
+      savedTxt.innerText = `Saved: ${billNo} — ${partyName} (Net: Rs. ${totals.netBill.toLocaleString()})`;
+    }
+
+    if (downloadPdfAfter) {
+      generateSmartBillPDF(billRecord);
+    }
+
+    resetSmartBillForm();
+    renderSmartBillChips();
+    renderSmartBillHistory();
+  }
+
+  function downloadLastSmartBillPDF() {
+    if (sbLastSavedBill) generateSmartBillPDF(sbLastSavedBill);
+  }
+
+  function copyLastSmartBillWhatsApp() {
+    if (!sbLastSavedBill) return;
+    const b = sbLastSavedBill;
+    const biz = (typeof currentUser !== 'undefined' && currentUser && currentUser.bizName) ? currentUser.bizName : 'M. TEX REPLICA';
+    const lines = [
+      `*${biz.toUpperCase()}*`,
+      `Invoice: *${b.billNo}* | Date: ${b.date}`,
+      `Party: *${b.partyName}*`,
+      `------------------------`,
+      ...b.items.map((x, i) => `${i + 1}. ${x.name} (${x.qty} ${x.unit} x ${x.rate}) = Rs. ${x.amount.toLocaleString()}`),
+      `------------------------`,
+      b.discount > 0 ? `Discount: -Rs. ${b.discount.toLocaleString()}` : '',
+      b.charges > 0 ? `Charges: +Rs. ${b.charges.toLocaleString()}` : '',
+      `*Net Bill: Rs. ${b.netBill.toLocaleString()}*`,
+      b.paidNow > 0 ? `Paid Now: Rs. ${b.paidNow.toLocaleString()}` : '',
+      `Prev Balance: Rs. ${b.prevBal.toLocaleString()}`,
+      `*Total Net Balance: Rs. ${b.totalKhata.toLocaleString()}*`
+    ].filter(Boolean).join('
+');
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(lines).then(() => alert('WhatsApp Bill Summary Copy Ho Gayi! Ab WhatsApp mein Paste kar dein.'));
+    } else {
+      prompt('Copy Bill Summary:', lines);
+    }
+  }
+
+  function generateSmartBillPDF(b) {
+    if (typeof window.jspdf === 'undefined') {
+      alert('PDF library load ho rahi hai, 2 second baad try karein!');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const bizName = (typeof currentUser !== 'undefined' && currentUser && currentUser.bizName) ? currentUser.bizName : 'M. TEX REPLICA';
+    const bizPhone = (typeof currentUser !== 'undefined' && currentUser && currentUser.phone) ? currentUser.phone : '';
+
+    // Dark Header
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, 210, 34, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.text(bizName.toUpperCase(), 14, 15);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(203, 213, 225);
+    doc.text((b.role === 'Supplier' ? 'PURCHASE VOUCHER / BILL' : 'TAX / SALE INVOICE') + (bizPhone ? '  |  Ph: ' + bizPhone : ''), 14, 22);
+
+    // Invoice Meta Box
+    doc.setFillColor(248, 250, 252);
+    doc.setDrawColor(203, 213, 225);
+    doc.roundedRect(14, 40, 182, 22, 2, 2, 'FD');
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text(`${b.role.toUpperCase()}: ${b.partyName}`, 18, 48);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Bill #: ${b.billNo}`, 18, 56);
+    doc.text(`Date: ${b.date}`, 192, 48, { align: 'right' });
+    doc.text(`Payment Mode: ${b.method || 'Credit'}`, 192, 56, { align: 'right' });
+
+    const rows = b.items.map((x, idx) => [
+      idx + 1,
+      x.name,
+      `${x.qty} ${x.unit}`,
+      'Rs. ' + Number(x.rate).toLocaleString(),
+      'Rs. ' + Number(x.amount).toLocaleString()
+    ]);
+
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({
+        startY: 68,
+        head: [['#', 'Item / Description', 'Qty', 'Rate', 'Amount']],
+        body: rows,
+        theme: 'grid',
+        headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9 },
+        styles: { fontSize: 9, cellPadding: 3 },
+        columnStyles: {
+          0: { halign: 'center', cellWidth: 12 },
+          2: { halign: 'center', cellWidth: 26 },
+          3: { halign: 'right', cellWidth: 32 },
+          4: { halign: 'right', cellWidth: 36, fontStyle: 'bold' }
+        }
+      });
+    }
+
+    let y = (doc.lastAutoTable ? doc.lastAutoTable.finalY : 130) + 8;
+    const sumX = 122;
+    doc.setFontSize(9.5);
+    doc.setTextColor(51, 65, 85);
+    doc.text('Sub-Total:', sumX, y);
+    doc.text('Rs. ' + Number(b.subTotal).toLocaleString(), 196, y, { align: 'right' });
+
+    if (b.discount > 0) {
+      y += 6;
+      doc.text('Discount:', sumX, y);
+      doc.text('- Rs. ' + Number(b.discount).toLocaleString(), 196, y, { align: 'right' });
+    }
+    if (b.charges > 0) {
+      y += 6;
+      doc.text('Delivery / Charges:', sumX, y);
+      doc.text('+ Rs. ' + Number(b.charges).toLocaleString(), 196, y, { align: 'right' });
+    }
+
+    y += 7;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(15, 23, 42);
+    doc.text('NET BILL AMOUNT:', sumX, y);
+    doc.text('Rs. ' + Number(b.netBill).toLocaleString(), 196, y, { align: 'right' });
+
+    if (b.paidNow > 0) {
+      y += 6;
+      doc.setFontSize(9.5);
+      doc.setTextColor(22, 163, 74);
+      doc.text('Paid Now:', sumX, y);
+      doc.text('- Rs. ' + Number(b.paidNow).toLocaleString(), 196, y, { align: 'right' });
+    }
+
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    doc.setTextColor(71, 85, 105);
+    doc.text('Previous Khata Balance:', sumX, y);
+    doc.text('Rs. ' + Number(b.prevBal).toLocaleString(), 196, y, { align: 'right' });
+
+    y += 8;
+    doc.setFillColor(239, 246, 255);
+    doc.roundedRect(118, y - 5, 78, 9, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10.5);
+    doc.setTextColor(30, 58, 138);
+    doc.text('TOTAL NET BALANCE:', sumX, y + 1);
+    doc.text('Rs. ' + Number(b.totalKhata).toLocaleString(), 196, y + 1, { align: 'right' });
+
+    const signY = Math.min(272, y + 28);
+    doc.setDrawColor(148, 163, 184);
+    doc.line(14, signY, 70, signY);
+    doc.line(140, signY, 196, signY);
+    doc.setFontSize(8.5);
+    doc.setTextColor(100, 116, 139);
+    doc.text('Receiver Signature', 14, signY + 5);
+    doc.text('Authorized Stamp & Sign', 196, signY + 5, { align: 'right' });
+    if (typeof drawShopStampOnDoc === 'function') {
+      drawShopStampOnDoc(doc, 136, signY - 22, 60, 22);
+    }
+
+    doc.save(`${b.billNo}_${b.partyName.replace(/\s+/g, '_')}.pdf`);
+  }
+
+  function renderSmartBillHistory() {
+    const tbody = document.getElementById('sbHistoryTableBody');
+    if (!tbody) return;
+    const bills = getSavedSmartBills();
+    if (!bills.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Koi Smart Bill abhi tak save nahi hua.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = bills.slice(0, 30).map((b, idx) => `
+      <tr>
+        <td class="ps-3">${b.date}</td>
+        <td class="fw-bold text-primary">${b.billNo}</td>
+        <td class="fw-bold">${b.partyName}</td>
+        <td class="text-muted small">${b.items.map(x => `${x.name} (${x.qty})`).join(', ')}</td>
+        <td class="text-end fw-bold">Rs. ${Number(b.netBill).toLocaleString()}</td>
+        <td class="text-center pe-3">
+          <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 fw-bold" onclick="reprintSmartBillByIndex(${idx})"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function reprintSmartBillByIndex(idx) {
+    const bills = getSavedSmartBills();
+    if (bills[idx]) generateSmartBillPDF(bills[idx]);
+  }
+
+  // Quick Bill # Payment Receive Helpers
+  function renderSbPayPartyDropdown() {
+    const inp = document.getElementById('sbPayPartyInput');
+    const menu = document.getElementById('sbPayPartyDropdown');
+    if (!inp || !menu) return;
+    const q = inp.value.trim().toLowerCase();
+    const list = getAllPartiesByRole('Customer').filter(p => !q || p.name.toLowerCase().includes(q));
+    if (!list.length) { menu.style.display = 'none'; return; }
+    menu.innerHTML = list.slice(0, 20).map(p => {
+      const safeAttr = p.name.replace(/"/g, '&quot;');
+      return `<div class="sb-suggest-item" onpointerdown="selectSbPayParty(this.getAttribute('data-name'))" data-name="${safeAttr}">
+        <span class="fw-bold">${p.name}</span>
+      </div>`;
+    }).join('');
+    menu.style.display = 'block';
+  }
+
+  function selectSbPayParty(name) {
+    const inp = document.getElementById('sbPayPartyInput');
+    if (inp) inp.value = name;
+    hideSbPayPartyDropdown();
+    updateSbPendingBillsDropdown();
+  }
+
+  function hideSbPayPartyDropdown() {
+    const menu = document.getElementById('sbPayPartyDropdown');
+    if (menu) menu.style.display = 'none';
+  }
+
+  function updateSbPendingBillsDropdown() {
+    const cust = (document.getElementById('sbPayPartyInput')?.value || '').trim().toLowerCase();
+    const sel = document.getElementById('sbPendingBillSelect');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">General / On-Account</option>';
+    if (!cust) return;
+
+    const bills = getSavedSmartBills().filter(b => b.role === 'Customer' && b.partyName.toLowerCase() === cust);
+    const txArr = (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) ? userTransactions : [];
+    bills.forEach(b => {
+      const paidAgainstBill = txArr
+        .filter(t => t && t.role === 'Customer' && t.name.toLowerCase() === cust && t.billNo === b.billNo && (t.type === 'PAYMENT_REC' || t.type === 'SALE_RETURN'))
+        .reduce((s, t) => s + (Number(t.amount) || 0), 0);
+      const due = Math.max(0, Number(b.netBill) - paidAgainstBill);
+      if (due > 0) {
+        const opt = document.createElement('option');
+        opt.value = b.billNo;
+        opt.setAttribute('data-due', due);
+        opt.innerText = `${b.billNo} (${b.date}) — Due: Rs. ${due.toLocaleString()}`;
+        sel.appendChild(opt);
+      }
+    });
+  }
+
+  function onSbPendingBillSelect() {
+    const sel = document.getElementById('sbPendingBillSelect');
+    const opt = sel?.options[sel.selectedIndex];
+    const due = opt?.getAttribute('data-due');
+    if (due && document.getElementById('sbPayAmount')) {
+      document.getElementById('sbPayAmount').value = due;
+    }
+  }
+
+  async function saveSbQuickPayment() {
+    const cust = (document.getElementById('sbPayPartyInput')?.value || '').trim();
+    const billNo = document.getElementById('sbPendingBillSelect')?.value || 'PAY-' + Date.now().toString().slice(-4);
+    const amt = Number(document.getElementById('sbPayAmount')?.value || 0);
+    const method = document.getElementById('sbPayQuickMethod')?.value || 'Cash';
+    const now = new Date();
+    const dateVal = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
+    if (!cust || amt <= 0) {
+      alert('Customer ka naam aur sahi Amount darj karein!');
+      return;
+    }
+
+    if (typeof userTransactions !== 'undefined' && Array.isArray(userTransactions)) {
+      userTransactions.push({
+        id: Date.now(),
+        role: 'Customer',
+        name: cust,
+        billNo,
+        type: 'PAYMENT_REC',
+        amount: amt,
+        method,
+        date: dateVal,
+        notes: billNo.startsWith('INV-') ? `Payment against ${billNo}` : 'Smart Bill Quick Payment',
+        img: ''
+      });
+    }
+
+    if (typeof saveToServer === 'function') await saveToServer();
+    if (typeof renderPartiesTables === 'function') renderPartiesTables();
+
+    document.getElementById('sbPayAmount').value = '';
+    updateSbPendingBillsDropdown();
+    alert(`Rs. ${amt.toLocaleString()} (${cust}) Khate mein jama ho gaye!`);
   }
 </script>
 </body>
