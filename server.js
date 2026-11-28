@@ -10,23 +10,40 @@ app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ limit: '20mb', extended: true }));
 app.use(express.static('public'));
 
-const DB_URL = process.env.FIREBASE_DB_URL;
-const DB_SECRET = process.env.FIREBASE_DB_SECRET;
+const RAW_DB_URL = (process.env.FIREBASE_DB_URL || 'https://my-pos-app-a9c4d-default-rtdb.firebaseio.com').trim().replace(/\/+$/, '');
+const DB_URL = RAW_DB_URL;
+const DB_SECRET = (process.env.FIREBASE_DB_SECRET || '').trim();
+
+function buildFbUrl(path, useSecret) {
+    const base = `${DB_URL}/${path}.json`;
+    return (useSecret && DB_SECRET) ? `${base}?auth=${encodeURIComponent(DB_SECRET)}` : base;
+}
 
 function fetchFirebase(path) {
     return new Promise((resolve) => {
         if (!DB_URL) return resolve(null);
-        const url = `${DB_URL}/${path}.json?auth=${DB_SECRET || ''}`;
-        https.get(url, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    if (res.statusCode === 200 && data !== 'null') resolve(JSON.parse(data));
-                    else resolve(null);
-                } catch(e) { resolve(null); }
+        const tryFetch = (useSecret) => {
+            https.get(buildFbUrl(path, useSecret), (res) => {
+                let data = '';
+                res.on('data', chunk => data += chunk);
+                res.on('end', () => {
+                    if (res.statusCode === 200) {
+                        try {
+                            resolve(data !== 'null' ? JSON.parse(data) : null);
+                        } catch (e) { resolve(null); }
+                    } else if (useSecret && (res.statusCode === 401 || res.statusCode === 403)) {
+                        tryFetch(false);
+                    } else {
+                        console.error('Firebase GET error:', res.statusCode, path);
+                        resolve(null);
+                    }
+                });
+            }).on('error', (err) => {
+                console.error('Firebase GET net error:', err.message);
+                resolve(null);
             });
-        }).on('error', () => resolve(null));
+        };
+        tryFetch(Boolean(DB_SECRET));
     });
 }
 
@@ -34,19 +51,32 @@ function saveFirebase(path, payload) {
     return new Promise((resolve) => {
         if (!DB_URL) return resolve(false);
         const data = JSON.stringify(payload);
-        const url = new URL(`${DB_URL}/${path}.json?auth=${DB_SECRET || ''}`);
-        const req = https.request(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(data)
-            }
-        }, (res) => {
-            resolve(res.statusCode === 200);
-        });
-        req.on('error', () => resolve(false));
-        req.write(data);
-        req.end();
+        const trySave = (useSecret) => {
+            const url = new URL(buildFbUrl(path, useSecret));
+            const req = https.request(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Content-Length': Buffer.byteLength(data)
+                }
+            }, (res) => {
+                if (res.statusCode === 200) {
+                    resolve(true);
+                } else if (useSecret && (res.statusCode === 401 || res.statusCode === 403)) {
+                    trySave(false);
+                } else {
+                    console.error('Firebase PUT error:', res.statusCode, path);
+                    resolve(false);
+                }
+            });
+            req.on('error', (err) => {
+                console.error('Firebase PUT net error:', err.message);
+                resolve(false);
+            });
+            req.write(data);
+            req.end();
+        };
+        trySave(Boolean(DB_SECRET));
     });
 }
 
